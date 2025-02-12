@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KDBX Diff Analyzer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>KDBX Diff Analyzer</h1>
+
+    <div class="form-group">
+        <label for="db1">Database 1:</label>
+        <input type="file" id="db1" accept=".kdbx">
+        <label for="passwordDb1">Password:</label>
+        <input type="password" id="passwordDb1">
+    </div>
+
+    <div class="form-group">
+        <label for="db2">Database 2:</label>
+        <input type="file" id="db2" accept=".kdbx">
+        <label for="passwordDb2">Password:</label>
+        <input type="password" id="passwordDb2">
+    </div>
+     <div class="form-group">
+        <label for="outputPath">Output Filename:</label>
+        <input type="text" id="outputPath" value="diff.kdbx">
+    </div>
+
+    <button id="compareBtn">Compare Databases</button>
+
+    <div id="status"></div>
+     <div id="downloadLink" style="display: none;">
+        <a href="#" download="diff.kdbx">Download Diff Database</a>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

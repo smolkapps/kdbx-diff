@@ -8,10 +8,9 @@ class KdbxDiffAnalyzer {
         kdbxweb.CryptoEngine.configure(argon2);
     }
 
-    async loadDatabase(filePath, password) {
+    async loadDatabase(fileBuffer, password) {
         const credentials = new kdbxweb.Credentials(kdbxweb.ProtectedValue.fromString(password));
-        const dbContent = await fs.promises.readFile(filePath);
-        return await kdbxweb.Kdbx.load(dbContent, credentials);
+        return await kdbxweb.Kdbx.load(fileBuffer, credentials);
     }
 
     /**
@@ -94,7 +93,7 @@ class KdbxDiffAnalyzer {
     /**
      * Main comparison function
      */
-    async compareDatabases(db1Path, db2Path, password1, password2, outputPath) {
+    async compareDatabases(db1Buffer, db2Buffer, password1, password2) {
         // Load both databases
         const db1 = await this.loadDatabase(db1Path, password1);
         const db2 = await this.loadDatabase(db2Path, password2);
@@ -119,7 +118,7 @@ class KdbxDiffAnalyzer {
                     let targetGroup = modifiedGroup;
                     if (matchingEntry.times.lastModTime) {
                         const dateStr = matchingEntry.times.lastModTime.toISOString().split('T')[0];
-                        targetGroup = diffDb.createGroup(modifiedGroup, dateStr);
+                        targetGroup = diffDb.groups.find(g => g.name === dateStr) || diffDb.createGroup(modifiedGroup, dateStr);
                     }
 
                     // Create entry with original values and add differences in notes
@@ -132,8 +131,7 @@ class KdbxDiffAnalyzer {
         }
 
         // Save the diff database
-        const diffContent = await diffDb.save();
-        await fs.promises.writeFile(outputPath, Buffer.from(diffContent));
+        return await diffDb.save();
     }
 }
 
