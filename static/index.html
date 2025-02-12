@@ -11,28 +11,36 @@
 
     <div class="form-group">
         <label for="db1">Database 1:</label>
-        <input type="file" id="db1" accept=".kdbx">
+        <input type="file" id="db1" accept=".kdbx" required>
         <label for="passwordDb1">Password:</label>
         <input type="password" id="passwordDb1">
+        <label for="keyFile1">Key File:</label>
+        <input type="file" id="keyFile1">
+        <div class="note">* At least one of password or key file is required</div>
     </div>
 
     <div class="form-group">
         <label for="db2">Database 2:</label>
-        <input type="file" id="db2" accept=".kdbx">
+        <input type="file" id="db2" accept=".kdbx" required>
         <label for="passwordDb2">Password:</label>
         <input type="password" id="passwordDb2">
+        <label for="keyFile2">Key File:</label>
+        <input type="file" id="keyFile2">
+        <div class="note">* At least one of password or key file is required</div>
     </div>
-     <div class="form-group">
+
+    <div class="form-group">
         <label for="outputPath">Output Filename:</label>
-        <input type="text" id="outputPath" value="diff.kdbx">
+        <input type="text" id="outputPath" value="diff.kdbx" required>
     </div>
 
     <button id="compareBtn">Compare Databases</button>
 
     <div id="status"></div>
-     <div id="downloadLink" style="display: none;">
+    <div id="downloadLink" style="display: none;">
         <a href="#" download="diff.kdbx">Download Diff Database</a>
     </div>
+
     <script src="script.js"></script>
 </body>
 </html>
