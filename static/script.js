@@ -11,11 +11,24 @@ document.getElementById('compareBtn').addEventListener('click', async () => {
     const downloadLink = document.getElementById('downloadLink');
     downloadLink.style.display = 'none';
 
-    if (!db1File || !db2File) {
-        statusDiv.textContent = 'Please select both database files.';
+    const unencryptedDb1 = document.getElementById('unencryptedDb1').checked;
+    const unencryptedDb2 = document.getElementById('unencryptedDb2').checked;
+
+
+    if (!db1File || !db2File)
+    {
+        statusDiv.textContent = 'Please select database files.';
         return;
     }
-
+    if (!unencryptedDb1 && !passwordDb1 && !document.getElementById('keyFile1').files[0]) {
+        statusDiv.textContent = 'Please enter a password or select a key file for Database 1.';
+        return;
+    }
+    if (!unencryptedDb2 && !passwordDb2 && !document.getElementById('keyFile2').files[0]) {
+        statusDiv.textContent = 'Please enter a password or select a key file for Database 2.';
+        return;
+    }
+    if (!outputPath.endsWith('.kdbx')) {
     if (!passwordDb1 && !keyFile1) {
         statusDiv.textContent = 'Database 1 requires either a password or key file.';
         return;
