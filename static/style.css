@@ -36,3 +36,12 @@ button:hover {
     margin-top: 20px;
     font-weight: bold;
 }
+
+.fade-out {
+    animation: fadeOut 2s forwards;
+}
+
+@keyframes fadeOut {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}

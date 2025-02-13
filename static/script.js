@@ -6,6 +6,9 @@ function handleFileLoad(event) {
     const fileId = event.target.id;
     const statusSpan = document.getElementById(fileId + 'Status');
 
+    // Remove fade-out class in case a file is re-selected
+    statusSpan.classList.remove('fade-out');
+
     if (file) {
         statusSpan.textContent = `File loaded: ${file.name}`;
         statusSpan.style.color = 'green';
@@ -15,6 +18,11 @@ function handleFileLoad(event) {
             const baseName = file.name.replace('.kdbx', '');
             document.getElementById('outputPath').value = `${baseName}-diff.kdbx`;
         }
+
+        // Add fade-out class after 2 seconds
+        setTimeout(() => {
+            statusSpan.classList.add('fade-out');
+        }, 2000);
 
     } else {
         statusSpan.textContent = '';
