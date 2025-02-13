@@ -48,7 +48,7 @@ app.post('/compare', upload.fields([
         res.send({ diffBuffer: Buffer.from(diffBuffer), diffString }); // Send both as JSON
     } catch (error) {
         console.error('Error comparing databases:', error);
-        res.status(500).send({ message: 'Error comparing databases: ' + error.message });
+        res.status(500).send({ message: error.message });
     }
 });
 

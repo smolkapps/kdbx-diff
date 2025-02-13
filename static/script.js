@@ -90,7 +90,7 @@ document.getElementById('compareBtn').addEventListener('click', async () => {
 
         } else {
             const error = await response.json();
-            statusDiv.textContent = 'Error: ' + error.message;
+            statusDiv.textContent = error.message;
         }
     } catch (error) {
         statusDiv.textContent = 'Error: ' + error;

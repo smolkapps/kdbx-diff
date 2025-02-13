@@ -50,11 +50,17 @@ class KdbxDiffAnalyzer {
         return new kdbxweb.Credentials(passwordPart, keyFilePart);
     }
 
-    async loadDatabase(fileBuffer, password, keyFileBuffer) {
-        const credentials = await this.createCredentials(password, keyFileBuffer);
-        // Convert Buffer to Uint8Array for kdbxweb
-        const arrayBuffer = new Uint8Array(fileBuffer).buffer;
-        return await kdbxweb.Kdbx.load(arrayBuffer, credentials);
+    async loadDatabase(fileBuffer, password, keyFileBuffer, dbIdentifier) {
+        try {
+            const credentials = await this.createCredentials(password, keyFileBuffer);
+            const arrayBuffer = new Uint8Array(fileBuffer).buffer;
+            return await kdbxweb.Kdbx.load(arrayBuffer, credentials);
+        } catch (error) {
+            if (error.name === 'InvalidKeyError') {
+                throw new Error(`Database ${dbIdentifier}: Incorrect key. Please try again.`);
+            }
+            throw new Error(`Database ${dbIdentifier}: ${error.message}`);
+        }
     }
 
     compareEntries(entry1, entry2) {
@@ -119,8 +125,8 @@ class KdbxDiffAnalyzer {
     }
 
     async compareDatabases(db1Buffer, db2Buffer, password1, password2, keyFile1Buffer, keyFile2Buffer) {
-        const db1 = await this.loadDatabase(db1Buffer, password1, keyFile1Buffer);
-        const db2 = await this.loadDatabase(db2Buffer, password2, keyFile2Buffer);
+        const db1 = await this.loadDatabase(db1Buffer, password1, keyFile1Buffer, '1');
+        const db2 = await this.loadDatabase(db2Buffer, password2, keyFile2Buffer, '2');
         let allDifferences = '';
 
         const credentials = await this.createCredentials(password1, keyFile1Buffer);
