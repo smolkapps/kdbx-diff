@@ -6,7 +6,7 @@ class KdbxDiffAnalyzer {
     constructor() {
         try {
             const argon2 = require('argon2');
-            kdbxweb.CryptoEngine.configure(argon2);
+            kdbxweb.argon2 = argon2; // Corrected configuration
         } catch (e) {
             if (e.code !== 'MODULE_NOT_FOUND') {
                 throw e; // Re-throw if it's not a missing module error
@@ -25,14 +25,14 @@ class KdbxDiffAnalyzer {
         }
 
         if (keyFileBuffer) {
-            keyFilePart = await kdbxweb.KeyEncoding.identifyKey(keyFileBuffer);
+            keyFilePart = await kdbxweb.KdbxCredentials.readKeyFile(keyFileBuffer);
         }
 
         if (!passwordPart && !keyFilePart) {
             throw new Error('Either password or key file must be provided');
         }
 
-        return new kdbxweb.Credentials(passwordPart, keyFilePart);
+        return new kdbxweb.KdbxCredentials(passwordPart, keyFilePart);
     }
 
     async loadDatabase(fileBuffer, password, keyFileBuffer) {
@@ -92,8 +92,8 @@ class KdbxDiffAnalyzer {
         );
     }
 
-    async createDiffDatabase() {
-        const newDb = await kdbxweb.Kdbx.create(new kdbxweb.Credentials());
+    async createDiffDatabase(credentials) {
+        const newDb = await kdbxweb.Kdbx.create(credentials);
         const missingGroup = newDb.createGroup(newDb.getDefaultGroup(), 'Missing Entries');
         const modifiedGroup = newDb.createGroup(newDb.getDefaultGroup(), 'Modified Entries');
         return { db: newDb, missingGroup, modifiedGroup };
@@ -104,14 +104,17 @@ class KdbxDiffAnalyzer {
         const db2 = await this.loadDatabase(db2Buffer, password2, keyFile2Buffer);
         let allDifferences = '';
 
-        const { db: diffDb, missingGroup, modifiedGroup } = await this.createDiffDatabase();
+        const credentials = await this.createCredentials(password1, keyFile1Buffer);
+        const { db: diffDb, missingGroup, modifiedGroup } = await this.createDiffDatabase(credentials);
         const entries1 = db1.getEntries();
 
         for (const entry of entries1) {
             const matchingEntry = this.findMatchingEntry(entry, db2);
 
             if (!matchingEntry) {
-                await diffDb.createEntry(missingGroup, entry.fields);
+                const newEntry = diffDb.createEntry(missingGroup);
+                newEntry.fields = Object.assign({}, entry.fields);
+                newEntry.uuid = entry.uuid; //Copy UUID
                 allDifferences += `Entry missing: ${entry.fields.Title}\n`;
 
             } else {
@@ -125,7 +128,9 @@ class KdbxDiffAnalyzer {
                                     diffDb.createGroup(modifiedGroup, dateStr);
                     }
 
-                    const diffEntry = await diffDb.createEntry(targetGroup, entry.fields);
+                    const diffEntry = diffDb.createEntry(targetGroup);
+                    diffEntry.fields = Object.assign({}, entry.fields);
+                    diffEntry.uuid = entry.uuid; //Copy UUID
                     diffEntry.fields.Notes = kdbxweb.ProtectedValue.fromString(
                         `Differences found:\n${JSON.stringify(differences, null, 2)}`
                     );
