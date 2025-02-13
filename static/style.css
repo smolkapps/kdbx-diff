@@ -37,11 +37,40 @@ button:hover {
     font-weight: bold;
 }
 
-.fade-out {
-    animation: fadeOut 2s forwards;
+.input-group {
+  position: relative;
+  display: inline-block; /* Necessary for correct positioning */
 }
 
-@keyframes fadeOut {
-    0% { opacity: 1; }
-    100% { opacity: 0; }
+/* Tooltip styles */
+[data-tooltip] {
+  position: relative; /* Make the element a positioning context for the tooltip */
+}
+
+[data-tooltip]:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: 100%; /* Position above the element */
+    left: 50%;
+    transform: translateX(-50%); /* Center horizontally */
+    background-color: rgba(0, 0, 0, 0.8); /* Dark background */
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    white-space: nowrap; /* Prevent text wrapping */
+    z-index: 1; /* Ensure it's above other elements */
+    pointer-events: none; /* Allow clicking through the tooltip */
+}
+
+[data-tooltip]:hover::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px; /* Center the arrow */
+    border-width: 5px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent; /* Arrow pointing up */
+    pointer-events: none;
+     /* Adjust position to avoid overlap */
 }

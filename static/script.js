@@ -4,28 +4,24 @@ document.getElementById('db2').addEventListener('change', handleFileLoad);
 function handleFileLoad(event) {
     const file = event.target.files[0];
     const fileId = event.target.id;
-    const statusSpan = document.getElementById(fileId + 'Status');
-
-    // Remove fade-out class in case a file is re-selected
-    statusSpan.classList.remove('fade-out');
+    const inputGroup = document.getElementById(fileId + '-input-group');
 
     if (file) {
-        statusSpan.textContent = `File loaded: ${file.name}`;
-        statusSpan.style.color = 'green';
+        // Set the data-tooltip attribute for the custom tooltip
+        inputGroup.setAttribute('data-tooltip', `File loaded: ${file.name}`);
+        //Prevent Default Tooltip from being shown
+        inputGroup.setAttribute('title', '');
 
         // If it's db1, suggest an output filename.
         if (fileId === 'db1') {
             const baseName = file.name.replace('.kdbx', '');
             document.getElementById('outputPath').value = `${baseName}-diff.kdbx`;
         }
-
-        // Add fade-out class after 2 seconds
-        setTimeout(() => {
-            statusSpan.classList.add('fade-out');
-        }, 2000);
-
     } else {
-        statusSpan.textContent = '';
+        // Clear the data-tooltip attribute
+        inputGroup.removeAttribute('data-tooltip');
+        //Prevent Default Tooltip from being shown
+        inputGroup.setAttribute('title', '');
     }
 }
 
