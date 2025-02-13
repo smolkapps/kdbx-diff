@@ -6,12 +6,27 @@ class KdbxDiffAnalyzer {
     constructor() {
         try {
             const argon2 = require('argon2');
-            kdbxweb.argon2 = argon2; // Corrected configuration
+            kdbxweb.CryptoEngine.argon2 = async function(password, salt, memory, iterations, length, parallelism, type, version) {
+                try {
+                    const hash = await argon2.hash(password, {
+                        salt: Buffer.from(salt),
+                        timeCost: iterations,
+                        memoryCost: memory,
+                        parallelism: parallelism,
+                        type: type === 0 ? argon2.argon2d : argon2.argon2i,
+                        hashLength: length,
+                        version: version,
+                        raw: true
+                    });
+                    return new Uint8Array(hash);
+                } catch (err) {
+                    throw new Error(`Argon2 error: ${err.message}`);
+                }
+            };
         } catch (e) {
             if (e.code !== 'MODULE_NOT_FOUND') {
-                throw e; // Re-throw if it's not a missing module error
+                throw e;
             }
-            // argon2 is optional, so ignore if it's not installed
             console.warn('argon2 not found, using default crypto engine. Install argon2 for better security.');
         }
     }
@@ -25,24 +40,26 @@ class KdbxDiffAnalyzer {
         }
 
         if (keyFileBuffer) {
-            keyFilePart = await kdbxweb.KdbxCredentials.readKeyFile(keyFileBuffer);
+            keyFilePart = await kdbxweb.Credentials.createKeyFileWithHash(keyFileBuffer);
         }
 
         if (!passwordPart && !keyFilePart) {
             throw new Error('Either password or key file must be provided');
         }
 
-        return new kdbxweb.KdbxCredentials(passwordPart, keyFilePart);
+        return new kdbxweb.Credentials(passwordPart, keyFilePart);
     }
 
     async loadDatabase(fileBuffer, password, keyFileBuffer) {
         const credentials = await this.createCredentials(password, keyFileBuffer);
-        return await kdbxweb.Kdbx.load(fileBuffer, credentials);
+        // Convert Buffer to Uint8Array for kdbxweb
+        const arrayBuffer = new Uint8Array(fileBuffer).buffer;
+        return await kdbxweb.Kdbx.load(arrayBuffer, credentials);
     }
 
     compareEntries(entry1, entry2) {
         const differences = {};
-
+        
         const fields = ['Title', 'UserName', 'Password', 'URL', 'Notes'];
         for (const field of fields) {
             const val1 = entry1.fields[field]?.toString();
@@ -82,18 +99,20 @@ class KdbxDiffAnalyzer {
 
     findMatchingEntry(sourceEntry, targetDb) {
         if (sourceEntry.uuid) {
-            const byUuid = targetDb.findEntryByUuid(sourceEntry.uuid);
+            const byUuid = targetDb.getDefaultGroup().entries.find(e => e.uuid.id === sourceEntry.uuid.id);
             if (byUuid) return byUuid;
         }
 
-        return targetDb.getEntries().find(entry =>
-            entry.fields.Title === sourceEntry.fields.Title &&
-            entry.fields.UserName === sourceEntry.fields.UserName
+        return targetDb.getDefaultGroup().entries.find(entry =>
+            entry.fields.get('Title')?.toString() === sourceEntry.fields.get('Title')?.toString() &&
+            entry.fields.get('UserName')?.toString() === sourceEntry.fields.get('UserName')?.toString()
         );
     }
 
     async createDiffDatabase(credentials) {
-        const newDb = await kdbxweb.Kdbx.create(credentials);
+        const newDb = kdbxweb.Kdbx.create(credentials, {
+            passwordKey: credentials.passwordHash
+        });
         const missingGroup = newDb.createGroup(newDb.getDefaultGroup(), 'Missing Entries');
         const modifiedGroup = newDb.createGroup(newDb.getDefaultGroup(), 'Modified Entries');
         return { db: newDb, missingGroup, modifiedGroup };
@@ -106,39 +125,43 @@ class KdbxDiffAnalyzer {
 
         const credentials = await this.createCredentials(password1, keyFile1Buffer);
         const { db: diffDb, missingGroup, modifiedGroup } = await this.createDiffDatabase(credentials);
-        const entries1 = db1.getEntries();
+        const entries1 = db1.getDefaultGroup().entries;
 
         for (const entry of entries1) {
             const matchingEntry = this.findMatchingEntry(entry, db2);
 
             if (!matchingEntry) {
                 const newEntry = diffDb.createEntry(missingGroup);
-                newEntry.fields = Object.assign({}, entry.fields);
-                newEntry.uuid = entry.uuid; //Copy UUID
-                allDifferences += `Entry missing: ${entry.fields.Title}\n`;
-
+                Object.entries(entry.fields.toObject()).forEach(([key, value]) => {
+                    newEntry.fields.set(key, value);
+                });
+                allDifferences += `Entry missing: ${entry.fields.get('Title')}\n`;
             } else {
                 const differences = this.compareEntries(entry, matchingEntry);
                 if (differences) {
-                    allDifferences += `Differences in ${entry.fields.Title}: ${JSON.stringify(differences)}\n`;
                     let targetGroup = modifiedGroup;
                     if (matchingEntry.times.lastModTime) {
                         const dateStr = matchingEntry.times.lastModTime.toISOString().split('T')[0];
-                        targetGroup = diffDb.groups.find(g => g.name === dateStr) ||
+                        targetGroup = diffDb.getGroup([dateStr]) ||
                                     diffDb.createGroup(modifiedGroup, dateStr);
                     }
 
                     const diffEntry = diffDb.createEntry(targetGroup);
-                    diffEntry.fields = Object.assign({}, entry.fields);
-                    diffEntry.uuid = entry.uuid; //Copy UUID
-                    diffEntry.fields.Notes = kdbxweb.ProtectedValue.fromString(
+                    Object.entries(entry.fields.toObject()).forEach(([key, value]) => {
+                        diffEntry.fields.set(key, value);
+                    });
+                    
+                    diffEntry.fields.set('Notes', kdbxweb.ProtectedValue.fromString(
                         `Differences found:\n${JSON.stringify(differences, null, 2)}`
-                    );
+                    ));
+                    
+                    allDifferences += `Differences in ${entry.fields.get('Title')}: ${JSON.stringify(differences)}\n`;
                 }
             }
         }
-      const savedDiff = await diffDb.save();
-      return {diffBuffer: savedDiff, diffString: allDifferences};
+
+        const savedDiff = await diffDb.save();
+        return { diffBuffer: savedDiff, diffString: allDifferences };
     }
 }
 
