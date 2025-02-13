@@ -35,7 +35,7 @@ app.post('/compare', upload.fields([
         }
 
         const analyzer = new KdbxDiffAnalyzer();
-        const diffBuffer = await analyzer.compareDatabases(
+        const { diffBuffer, diffString } = await analyzer.compareDatabases(
             db1Buffer,
             db2Buffer,
             passwordDb1,
@@ -44,10 +44,8 @@ app.post('/compare', upload.fields([
             keyFile2Buffer
         );
 
-        res.setHeader('Content-Disposition', `attachment; filename="${outputPath}"`);
-        res.setHeader('Content-Type', 'application/octet-stream');
-        res.send(Buffer.from(diffBuffer));
-
+        res.setHeader('Content-Type', 'application/json'); // Set content type to JSON
+        res.send({ diffBuffer: Buffer.from(diffBuffer), diffString }); // Send both as JSON
     } catch (error) {
         console.error('Error comparing databases:', error);
         res.status(500).send({ message: 'Error comparing databases: ' + error.message });

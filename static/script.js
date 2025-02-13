@@ -1,3 +1,26 @@
+document.getElementById('db1').addEventListener('change', handleFileLoad);
+document.getElementById('db2').addEventListener('change', handleFileLoad);
+
+function handleFileLoad(event) {
+    const file = event.target.files[0];
+    const fileId = event.target.id;
+    const statusSpan = document.getElementById(fileId + 'Status');
+
+    if (file) {
+        statusSpan.textContent = `File loaded: ${file.name}`;
+        statusSpan.style.color = 'green';
+
+        // If it's db1, suggest an output filename.
+        if (fileId === 'db1') {
+            const baseName = file.name.replace('.kdbx', '');
+            document.getElementById('outputPath').value = `${baseName}-diff.kdbx`;
+        }
+
+    } else {
+        statusSpan.textContent = '';
+    }
+}
+
 document.getElementById('compareBtn').addEventListener('click', async () => {
     const db1File = document.getElementById('db1').files[0];
     const db2File = document.getElementById('db2').files[0];
@@ -13,10 +36,10 @@ document.getElementById('compareBtn').addEventListener('click', async () => {
 
     const unencryptedDb1 = document.getElementById('unencryptedDb1').checked;
     const unencryptedDb2 = document.getElementById('unencryptedDb2').checked;
+    const diffOutputDiv = document.getElementById('diff-output');
+    diffOutputDiv.innerHTML = ''; // Clear previous diff
 
-
-    if (!db1File || !db2File)
-    {
+    if (!db1File || !db2File) {
         statusDiv.textContent = 'Please select database files.';
         return;
     }
@@ -26,15 +49,6 @@ document.getElementById('compareBtn').addEventListener('click', async () => {
     }
     if (!unencryptedDb2 && !passwordDb2 && !document.getElementById('keyFile2').files[0]) {
         statusDiv.textContent = 'Please enter a password or select a key file for Database 2.';
-        return;
-    }
-    if (!outputPath.endsWith('.kdbx')) {
-    if (!passwordDb1 && !keyFile1) {
-        statusDiv.textContent = 'Database 1 requires either a password or key file.';
-        return;
-    }
-    if (!passwordDb2 && !keyFile2) {
-        statusDiv.textContent = 'Database 2 requires either a password or key file.';
         return;
     }
 
@@ -61,13 +75,18 @@ document.getElementById('compareBtn').addEventListener('click', async () => {
         });
 
         if (response.ok) {
-            const blob = await response.blob();
+            const data = await response.json(); // Expecting JSON now
+            const blob = new Blob([data.diffBuffer], { type: 'application/octet-stream' });
             const url = window.URL.createObjectURL(blob);
             const a = downloadLink.querySelector('a');
             a.href = url;
             a.download = outputPath;
             downloadLink.style.display = 'block';
             statusDiv.textContent = 'Comparison complete! Download the diff database:';
+
+            // Display the diff
+            diffOutputDiv.innerHTML = `<pre>${data.diffString}</pre>`;
+
         } else {
             const error = await response.json();
             statusDiv.textContent = 'Error: ' + error.message;
