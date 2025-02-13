@@ -40,7 +40,11 @@ class KdbxDiffAnalyzer {
         }
 
         if (keyFileBuffer) {
-            keyFilePart = await kdbxweb.Credentials.createKeyFileWithHash(keyFileBuffer);
+            try {
+                keyFilePart = await kdbxweb.Credentials.createKeyFile(keyFileBuffer);
+            } catch (error) {
+                throw new Error(`Failed to process key file: ${error.message}`);
+            }
         }
 
         if (!passwordPart && !keyFilePart) {
@@ -53,8 +57,7 @@ class KdbxDiffAnalyzer {
     async loadDatabase(fileBuffer, password, keyFileBuffer, dbIdentifier) {
         try {
             const credentials = await this.createCredentials(password, keyFileBuffer);
-            const arrayBuffer = new Uint8Array(fileBuffer).buffer;
-            return await kdbxweb.Kdbx.load(arrayBuffer, credentials);
+            return await kdbxweb.Kdbx.load(fileBuffer, credentials);
         } catch (error) {
             if (error.name === 'InvalidKeyError') {
                 throw new Error(`Database ${dbIdentifier}: Incorrect key. Please try again.`);
