@@ -38,8 +38,6 @@ document.getElementById('compareBtn').addEventListener('click', async () => {
     const downloadLink = document.getElementById('downloadLink');
     downloadLink.style.display = 'none';
 
-    const unencryptedDb1 = document.getElementById('unencryptedDb1').checked;
-    const unencryptedDb2 = document.getElementById('unencryptedDb2').checked;
     const diffOutputDiv = document.getElementById('diff-output');
     diffOutputDiv.innerHTML = ''; // Clear previous diff
 
@@ -47,11 +45,11 @@ document.getElementById('compareBtn').addEventListener('click', async () => {
         statusDiv.textContent = 'Please select database files.';
         return;
     }
-    if (!unencryptedDb1 && !passwordDb1 && !document.getElementById('keyFile1').files[0]) {
+    if (!passwordDb1 && !document.getElementById('keyFile1').files[0]) {
         statusDiv.textContent = 'Please enter a password or select a key file for Database 1.';
         return;
     }
-    if (!unencryptedDb2 && !passwordDb2 && !document.getElementById('keyFile2').files[0]) {
+    if (!passwordDb2 && !document.getElementById('keyFile2').files[0]) {
         statusDiv.textContent = 'Please enter a password or select a key file for Database 2.';
         return;
     }
