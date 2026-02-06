@@ -24,6 +24,7 @@ const App = {
         Transfer.init();
         Duplicates.init();
         Import.init();
+        CsvImport.init();
     },
 
     switchTab(tabId) {

@@ -14,6 +14,7 @@
         <button class="tab-btn" data-tab="tab-transfer" data-requires-upload disabled>Transfer</button>
         <button class="tab-btn" data-tab="tab-duplicates" data-requires-upload disabled>Duplicates</button>
         <button class="tab-btn" data-tab="tab-import" data-requires-upload disabled>Import</button>
+        <button class="tab-btn" data-tab="tab-csv-import">CSV Import</button>
     </nav>
 
     <div id="status" class="status"></div>
@@ -80,6 +81,21 @@
         <div id="importSelectArea"></div>
     </div>
 
+    <!-- CSV Import Tab -->
+    <div id="tab-csv-import" class="tab-panel">
+        <div class="csv-import-form">
+            <fieldset>
+                <legend>Import from Browser Password Export</legend>
+                <p class="csv-description">Upload a CSV file exported from Chrome, Firefox, or Safari. The format will be auto-detected.</p>
+                <label>CSV File: <input type="file" id="csvFile" accept=".csv"></label>
+            </fieldset>
+            <div class="button-row">
+                <button id="csvImportBtn">Import CSV as Database</button>
+            </div>
+        </div>
+        <div id="csvImportResults"></div>
+    </div>
+
     <!-- Detail Modal -->
     <div id="detailModal" class="modal">
         <div class="modal-content">
@@ -95,6 +111,7 @@
     <script src="js/components/transfer.js"></script>
     <script src="js/components/duplicates.js"></script>
     <script src="js/components/import.js"></script>
+    <script src="js/components/csv-import.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
