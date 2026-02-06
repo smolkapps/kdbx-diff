@@ -48,15 +48,36 @@ const Duplicates = {
                 row.className = 'dup-entry';
                 const isKeep = entry.suggested === 'keep';
 
-                row.innerHTML = `
-                    <label>
-                        <input type="checkbox" class="dup-remove-cb" value="${entry.uuid}" ${isKeep ? '' : 'checked'}>
-                        <span class="dup-entry-title">${this._esc(entry.fields.Title || '(untitled)')}</span>
-                        <span class="dup-entry-user">${this._esc(entry.fields.UserName || '')}</span>
-                        <span class="dup-entry-mod">${entry.times?.lastModTime ? new Date(entry.times.lastModTime).toLocaleDateString() : ''}</span>
-                        ${isKeep ? '<span class="keep-badge">KEEP</span>' : '<span class="remove-badge">REMOVE</span>'}
-                    </label>
-                `;
+                const label = document.createElement('label');
+
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.className = 'dup-remove-cb';
+                cb.value = entry.uuid;
+                if (!isKeep) cb.checked = true;
+                label.appendChild(cb);
+
+                const titleSpan = document.createElement('span');
+                titleSpan.className = 'dup-entry-title';
+                titleSpan.textContent = entry.fields.Title || '(untitled)';
+                label.appendChild(titleSpan);
+
+                const userSpan = document.createElement('span');
+                userSpan.className = 'dup-entry-user';
+                userSpan.textContent = entry.fields.UserName || '';
+                label.appendChild(userSpan);
+
+                const modSpan = document.createElement('span');
+                modSpan.className = 'dup-entry-mod';
+                modSpan.textContent = entry.times?.lastModTime ? new Date(entry.times.lastModTime).toLocaleDateString() : '';
+                label.appendChild(modSpan);
+
+                const badge = document.createElement('span');
+                badge.className = isKeep ? 'keep-badge' : 'remove-badge';
+                badge.textContent = isKeep ? 'KEEP' : 'REMOVE';
+                label.appendChild(badge);
+
+                row.appendChild(label);
                 body.appendChild(row);
             }
 
@@ -82,11 +103,5 @@ const Duplicates = {
         } catch (err) {
             App.setStatus('Removal failed: ' + err.message, 'error');
         }
-    },
-
-    _esc(str) {
-        const d = document.createElement('div');
-        d.textContent = str;
-        return d.innerHTML;
     }
 };

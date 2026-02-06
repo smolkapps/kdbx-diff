@@ -83,7 +83,12 @@ const Api = {
     },
 
     async _handle(res) {
-        const data = await res.json();
+        let data;
+        try {
+            data = await res.json();
+        } catch {
+            throw new Error(res.ok ? 'Unexpected non-JSON response' : `Request failed (${res.status})`);
+        }
         if (!res.ok) throw new Error(data.error || 'Request failed');
         return data;
     }
