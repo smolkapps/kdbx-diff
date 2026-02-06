@@ -66,6 +66,36 @@ Tabbed SPA: **Compare** | **Transfer** | **Duplicates** | **Import**
 - **Force push**: only use `--force-with-lease` and only when absolutely certain it's needed. Prefer normal push in all other cases
 - **Commit style**: conventional commits (`feat:`, `fix:`, `chore:`, etc.) with concise messages
 
+## Security
+
+The following hardening measures have been applied:
+
+### Critical
+- **Error sanitization**: All catch blocks use `safeError()` helper that logs server-side and returns generic messages to clients (no stack traces or internal paths leaked)
+- **Filename injection prevention**: `sanitizeFilename()` strips path separators, control characters, and enforces `.kdbx` extension on download endpoints
+
+### High
+- **XSS prevention**: `transfer.js` and `duplicates.js` use DOM APIs (`createElement`, `textContent`, `dataset`) instead of `innerHTML` with interpolated UUIDs. CSS selector injection fixed by using `Array.find()` instead of string interpolation in `querySelector`
+- **CSRF protection**: Origin header validation middleware rejects non-localhost origins on state-changing requests. `X-Session-Token` custom header provides additional implicit CSRF defense
+- **Upload limits**: Multer configured with 10 MB file size limit, max 4 files, and file extension validation (`.kdbx` for databases, `.key/.keyx/.keyfile/.xml` for key files)
+- **Timing-safe sessions**: `SessionStore.getSession()` uses `crypto.timingSafeEqual()` to prevent timing attacks on session token lookup
+
+### Medium
+- **Rate limiting**: In-memory rate limiter (30 req/min/IP) with periodic cleanup, no external dependency
+- **Security headers**: CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy set on all responses
+- **UUID validation**: All endpoints that accept UUIDs validate format before processing
+- **Credentials removed from sessions**: Database credentials are no longer stored in session objects (kdbxweb associates them at load time)
+- **Criteria validation**: Duplicate finder allowlists `username+url` and `title+username` criteria values
+- **Fallback match logging**: `DiffEngine` logs when Title+UserName fallback matching is used and flags results with `matchedByFallback`
+
+### Low
+- **Graceful shutdown**: `SessionStore.destroy()` method cleans up timers; server hooks SIGINT/SIGTERM for clean exit
+- **Frontend error handling**: `Api._handle()` wraps `res.json()` in try-catch for non-JSON responses
+- **Auth failure logging**: `requireSession` middleware logs IP, method, and path on authentication failures
+
+### Audit Tool
+Use the `security-auditor` agent (`~/.claude/agents/security-auditor.md`) for future OWASP-based audits of this or any project.
+
 ## Known Limitations
 
 - Entry matching falls back to Title+UserName when UUIDs don't match across databases
