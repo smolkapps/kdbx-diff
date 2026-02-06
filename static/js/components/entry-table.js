@@ -7,7 +7,7 @@ function createEntryTable(entries, { checkboxes = false, onRowClick = null, id =
     // Header
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
-    const columns = ['Title', 'UserName', 'URL', 'Group', 'Last Modified'];
+    const columns = ['Title', 'UserName', 'URL', 'Group', 'Attachments', 'Last Modified'];
 
     if (checkboxes) {
         const thCheck = document.createElement('th');
@@ -53,11 +53,16 @@ function createEntryTable(entries, { checkboxes = false, onRowClick = null, id =
             ? new Date(entry.times.lastModTime).toLocaleDateString()
             : '';
 
+        const attachCount = Array.isArray(entry.binaries) && entry.binaries.length > 0
+            ? entry.binaries.length + ' file' + (entry.binaries.length > 1 ? 's' : '')
+            : '';
+
         for (const val of [
             fields.Title || '',
             fields.UserName || '',
             fields.URL || '',
             entry.groupPath || '',
+            attachCount,
             lastMod
         ]) {
             const td = document.createElement('td');
@@ -83,7 +88,7 @@ function createEntryTable(entries, { checkboxes = false, onRowClick = null, id =
 function sortTable(table, column, hasCheckboxes) {
     const tbody = table.querySelector('tbody');
     const rows = [...tbody.querySelectorAll('tr')];
-    const colMap = { Title: 0, UserName: 1, URL: 2, Group: 3, 'Last Modified': 4 };
+    const colMap = { Title: 0, UserName: 1, URL: 2, Group: 3, Attachments: 4, 'Last Modified': 5 };
     const colIdx = colMap[column] + (hasCheckboxes ? 1 : 0);
     const th = table.querySelector(`th[data-column="${column}"]`);
     const asc = th.dataset.sortDir !== 'asc';
