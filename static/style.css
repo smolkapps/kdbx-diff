@@ -1,76 +1,274 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
 body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    padding: 20px;
+    max-width: 1100px;
+    margin: 0 auto;
 }
 
-.form-group {
-    margin-bottom: 10px;
-}
+h1 { margin-bottom: 16px; }
 
-label {
-    display: inline-block;
-    width: 100px;
+/* Tabs */
+.tabs {
+    display: flex;
+    gap: 4px;
+    border-bottom: 2px solid #ddd;
+    margin-bottom: 16px;
 }
+.tab-btn {
+    padding: 8px 20px;
+    border: none;
+    background: #e0e0e0;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+}
+.tab-btn.active { background: #4CAF50; color: #fff; }
+.tab-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.tab-btn:hover:not(:disabled):not(.active) { background: #ccc; }
 
-input[type="file"], input[type="password"], input[type="text"] {
-    width: 250px;
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Status */
+.status {
+    padding: 8px 12px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    min-height: 20px;
+    font-weight: 500;
+}
+.status-info { background: #e3f2fd; color: #1565c0; }
+.status-success { background: #e8f5e9; color: #2e7d32; }
+.status-error { background: #ffebee; color: #c62828; }
+
+/* Upload form */
+.upload-form { margin-bottom: 20px; }
+.form-row {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+fieldset {
+    flex: 1;
+    min-width: 280px;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: #fff;
+}
+legend { font-weight: 600; padding: 0 6px; }
+fieldset label {
+    display: block;
+    margin: 8px 0;
+    font-size: 14px;
+}
+fieldset input[type="file"],
+fieldset input[type="password"] {
+    width: 100%;
     padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-top: 2px;
+}
+
+/* Buttons */
+.button-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+button {
+    padding: 8px 18px;
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+button:hover:not(:disabled) { background: #43a047; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary { background: #607d8b; }
+.btn-secondary:hover:not(:disabled) { background: #546e7a; }
+
+/* Summary cards */
+.summary-cards {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+.card {
+    flex: 1;
+    min-width: 120px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 14px;
+    text-align: center;
+    border-left: 4px solid #ef5350;
+}
+.card-modified { border-left-color: #ffa726; }
+.card-identical { border-left-color: #66bb6a; }
+.card-number { display: block; font-size: 28px; font-weight: 700; }
+.card-label { font-size: 13px; color: #666; }
+
+/* Collapsible sections */
+.collapsible-section { margin-bottom: 12px; }
+.section-header {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-weight: 600;
+    user-select: none;
+}
+.section-header::before { content: '\25BC  '; font-size: 11px; }
+.collapsed .section-header::before { content: '\25B6  '; }
+.section-body { padding: 8px 0; }
+.collapsed .section-body { display: none; }
+
+/* Tables */
+.entry-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    font-size: 13px;
+}
+.entry-table th, .entry-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+.entry-table th {
+    background: #fafafa;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+.entry-table tbody tr:hover { background: #f5f5f5; }
+
+.diff-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    margin-top: 6px;
+}
+.diff-table th, .diff-table td {
+    padding: 5px 8px;
+    border: 1px solid #eee;
+    text-align: left;
+}
+.diff-table th { background: #fafafa; font-weight: 600; }
+
+/* Modified entries */
+.modified-entry {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+}
+.modified-entry-header { margin-bottom: 6px; }
+.newer-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+/* Detail modal */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+.modal-content {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 22px;
+    cursor: pointer;
+    color: #888;
+}
+.modal-close:hover { color: #333; }
+.detail-table { width: 100%; }
+.detail-table td { padding: 5px 8px; border-bottom: 1px solid #eee; vertical-align: top; }
+.detail-table td:first-child { width: 120px; }
+
+/* Placeholder text */
+.placeholder { padding: 40px; text-align: center; color: #999; font-size: 15px; }
+
+/* Transfer tab */
+.transfer-section { margin-bottom: 16px; }
+.transfer-section h3 { margin-bottom: 8px; font-size: 15px; }
+.modified-transfer-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 12px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 4px;
+    margin-bottom: 4px;
+}
+.modified-transfer-row select {
+    padding: 4px 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
 }
 
-button {
-    padding: 10px 20px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
+/* Duplicates tab */
+select#dupCriteria {
+    padding: 6px 10px;
+    border: 1px solid #ccc;
     border-radius: 4px;
+    font-size: 14px;
+}
+.dup-group {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+.dup-group-header {
+    padding: 10px 14px;
+    font-weight: 600;
     cursor: pointer;
+    user-select: none;
 }
-
-button:hover {
-    background-color: #45a049;
-}
-
-#status {
-    margin-top: 20px;
-    font-weight: bold;
-}
-
-.input-group {
-  position: relative;
-  display: inline-block; /* Necessary for correct positioning */
-}
-
-/* Tooltip styles */
-[data-tooltip] {
-  position: relative; /* Make the element a positioning context for the tooltip */
-}
-
-[data-tooltip]:hover::before {
-    content: attr(data-tooltip);
-    position: absolute;
-    top: 100%; /* Position above the element */
-    left: 50%;
-    transform: translateX(-50%); /* Center horizontally */
-    background-color: rgba(0, 0, 0, 0.8); /* Dark background */
-    color: white;
-    padding: 5px 10px;
-    border-radius: 4px;
-    white-space: nowrap; /* Prevent text wrapping */
-    z-index: 1; /* Ensure it's above other elements */
-    pointer-events: none; /* Allow clicking through the tooltip */
-}
-
-[data-tooltip]:hover::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px; /* Center the arrow */
-    border-width: 5px;
-    border-style: solid;
-    border-color: rgba(0, 0, 0, 0.8) transparent transparent transparent; /* Arrow pointing up */
-    pointer-events: none;
-     /* Adjust position to avoid overlap */
-}
+.dup-group-header::before { content: '\25BC  '; font-size: 11px; }
+.dup-group.collapsed .dup-group-header::before { content: '\25B6  '; }
+.dup-group-body { padding: 0 14px 10px; }
+.dup-group.collapsed .dup-group-body { display: none; }
+.dup-entry { padding: 4px 0; }
+.dup-entry label { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.dup-entry-title { font-weight: 500; min-width: 150px; }
+.dup-entry-user { color: #666; min-width: 150px; }
+.dup-entry-mod { color: #999; font-size: 12px; }
+.keep-badge { background: #e8f5e9; color: #2e7d32; padding: 1px 6px; border-radius: 8px; font-size: 11px; font-weight: 600; }
+.remove-badge { background: #ffebee; color: #c62828; padding: 1px 6px; border-radius: 8px; font-size: 11px; font-weight: 600; }
