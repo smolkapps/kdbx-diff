@@ -9,46 +9,92 @@
 <body>
     <h1>KDBX Diff Analyzer</h1>
 
-    <div class="form-group">
-        <div class="input-group" id="db1-input-group">
-            <label for="db1">Database 1:</label>
-            <input type="file" id="db1" accept=".kdbx" required>
+    <nav class="tabs">
+        <button class="tab-btn active" data-tab="tab-compare">Compare</button>
+        <button class="tab-btn" data-tab="tab-transfer" data-requires-upload disabled>Transfer</button>
+        <button class="tab-btn" data-tab="tab-duplicates" data-requires-upload disabled>Duplicates</button>
+        <button class="tab-btn" data-tab="tab-import" data-requires-upload disabled>Import</button>
+    </nav>
+
+    <div id="status" class="status"></div>
+
+    <!-- Compare Tab -->
+    <div id="tab-compare" class="tab-panel active">
+        <div class="upload-form">
+            <div class="form-row">
+                <fieldset>
+                    <legend>Database 1</legend>
+                    <label>File: <input type="file" id="db1" accept=".kdbx"></label>
+                    <label>Password: <input type="password" id="passwordDb1"></label>
+                    <label>Key File: <input type="file" id="keyFile1" accept=".key,.keyx,.keyfile,.xml"></label>
+                </fieldset>
+                <fieldset>
+                    <legend>Database 2</legend>
+                    <label>File: <input type="file" id="db2" accept=".kdbx"></label>
+                    <label>Password: <input type="password" id="passwordDb2"></label>
+                    <label>Key File: <input type="file" id="keyFile2" accept=".key,.keyx,.keyfile,.xml"></label>
+                </fieldset>
+            </div>
+            <div class="button-row">
+                <button id="uploadBtn">Upload &amp; Load</button>
+                <button id="compareBtn" disabled>Compare</button>
+            </div>
+            <div id="downloadSection" class="button-row" style="display:none">
+                <button id="downloadDb1Btn" class="btn-secondary">Download DB1</button>
+                <button id="downloadDb2Btn" class="btn-secondary">Download DB2</button>
+            </div>
         </div>
-        <label for="passwordDb1">Password:</label>
-        <input type="password" id="passwordDb1">
-        <label for="keyFile1">Key File:</label>
-        <input type="file" id="keyFile1">
-        
-        <div class="note">* At least one of password or key file is required</div>
+        <div id="compareResults"></div>
     </div>
 
-    <div class="form-group">
-        <div class="input-group" id="db2-input-group">
-            <label for="db2">Database 2:</label>
-            <input type="file" id="db2" accept=".kdbx" required>
+    <!-- Transfer Tab -->
+    <div id="tab-transfer" class="tab-panel">
+        <div id="transferContent">
+            <p class="placeholder">Run a comparison first on the Compare tab, then return here to transfer entries.</p>
         </div>
-        <label for="passwordDb2">Password:</label>
-        <input type="password" id="passwordDb2">
-        <label for="keyFile2">Key File:</label>
-        <input type="file" id="keyFile2">
-        
-        <div class="note">* At least one of password or key file is required</div>
     </div>
 
-    <div class="form-group">
-        <label for="outputPath">Output Filename:</label>
-        <input type="text" id="outputPath" value="diff.kdbx" required>
+    <!-- Duplicates Tab -->
+    <div id="tab-duplicates" class="tab-panel">
+        <div class="button-row">
+            <select id="dupCriteria">
+                <option value="username+url">Username + URL</option>
+                <option value="title+username">Title + Username</option>
+            </select>
+            <button id="findDuplicatesBtn">Find Duplicates</button>
+            <button id="removeDuplicatesBtn" class="btn-secondary" disabled>Remove Selected</button>
+            <button class="btn-secondary" onclick="Transfer.downloadDb('db1')">Download Cleaned DB1</button>
+        </div>
+        <div id="dupResults"></div>
     </div>
 
-    <button id="compareBtn">Compare Databases</button>
-
-    <div id="status"></div>
-    <div id="downloadLink" style="display: none;">
-        <a href="#" download="diff.kdbx">Download Diff Database</a>
+    <!-- Import Tab -->
+    <div id="tab-import" class="tab-panel">
+        <div class="button-row">
+            <button id="importNewBtn">Import New Only</button>
+            <button id="showSelectBtn" class="btn-secondary">Select &amp; Import</button>
+            <button id="importAllBtn" class="btn-secondary">Import All</button>
+            <button id="importSelectedBtn" disabled>Import Selected</button>
+            <button class="btn-secondary" onclick="Transfer.downloadDb('db1')">Download Updated DB1</button>
+        </div>
+        <div id="importSelectArea"></div>
     </div>
 
-    <div id="diff-output"></div>
+    <!-- Detail Modal -->
+    <div id="detailModal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close">&times;</span>
+            <h3>Entry Details</h3>
+            <div id="detailBody"></div>
+        </div>
+    </div>
 
-    <script src="script.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/components/entry-table.js"></script>
+    <script src="js/components/compare.js"></script>
+    <script src="js/components/transfer.js"></script>
+    <script src="js/components/duplicates.js"></script>
+    <script src="js/components/import.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
