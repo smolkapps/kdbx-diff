@@ -29,6 +29,13 @@ The app has three layers:
 - **argon2** (optional) — Better key derivation; falls back gracefully if not installed
 - **express** + **multer** — HTTP server and file upload handling
 
+## Git Workflow
+
+- **Always commit after completing any changes** — never leave work uncommitted when moving to the next task
+- **Push to remote** whenever appropriate, or whenever more than 5 commits have accumulated since the last push
+- **Force push**: only use `--force-with-lease` and only when absolutely certain it's needed. Prefer normal push in all other cases
+- **Commit style**: conventional commits (`feat:`, `fix:`, `chore:`, etc.) with concise messages
+
 ## Known Limitations
 
 - Entry matching falls back to Title+UserName when UUIDs don't match
