@@ -100,4 +100,3 @@ Use the `security-auditor` agent (`~/.claude/agents/security-auditor.md`) for fu
 
 - Entry matching falls back to Title+UserName when UUIDs don't match across databases
 - No attachment or history comparison
-- Group structure from original databases is not preserved in transfers/imports
