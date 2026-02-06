@@ -67,6 +67,16 @@ const Api = {
         return this._handle(res);
     },
 
+    async csvImport(formData) {
+        const headers = {};
+        if (this.sessionToken) headers['X-Session-Token'] = this.sessionToken;
+
+        const res = await fetch('/api/csv-import', { method: 'POST', headers, body: formData });
+        const data = await this._handle(res);
+        if (data.sessionToken) this.sessionToken = data.sessionToken;
+        return data;
+    },
+
     async importEntries(mode, selectedUuids) {
         const res = await fetch('/api/import', {
             method: 'POST',

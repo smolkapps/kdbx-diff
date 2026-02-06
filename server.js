@@ -6,6 +6,7 @@ const DiffEngine = require('./lib/DiffEngine');
 const TransferEngine = require('./lib/TransferEngine');
 const DuplicateFinder = require('./lib/DuplicateFinder');
 const ImportEngine = require('./lib/ImportEngine');
+const CsvImporter = require('./lib/CsvImporter');
 const SessionStore = require('./lib/SessionStore');
 
 const app = express();
@@ -90,6 +91,10 @@ const upload = multer({
             const validKeyExts = ['.key', '.keyx', '.keyfile', '.xml'];
             if (!validKeyExts.some(e => ext.endsWith(e))) {
                 return cb(new Error('Key files must be .key, .keyx, .keyfile, or .xml'));
+            }
+        } else if (file.fieldname === 'csvFile') {
+            if (!file.originalname.toLowerCase().endsWith('.csv')) {
+                return cb(new Error('Only .csv files are accepted for CSV import'));
             }
         }
         cb(null, true);
@@ -251,6 +256,9 @@ app.use((err, req, res, next) => {
     if (err.message && err.message.includes('Key files must be')) {
         return res.status(400).json({ error: err.message });
     }
+    if (err.message && err.message.includes('Only .csv files')) {
+        return res.status(400).json({ error: err.message });
+    }
     next(err);
 });
 
@@ -394,6 +402,57 @@ app.post('/api/import', requireSession, async (req, res) => {
         res.json(result);
     } catch (error) {
         safeError(res, 500, error, 'Import failed');
+    }
+});
+
+// POST /api/csv-import — import CSV file from browser password exports
+app.post('/api/csv-import', upload.single('csvFile'), async (req, res) => {
+    try {
+        const token = req.headers['x-session-token'];
+        let session;
+        let sessionToken;
+
+        if (token && sessions.getSession(token)) {
+            session = sessions.getSession(token);
+            sessionToken = token;
+        } else {
+            sessionToken = sessions.createSession();
+            session = sessions.getSession(sessionToken);
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ error: 'No CSV file provided' });
+        }
+
+        const csvContent = req.file.buffer.toString('utf-8');
+        const importer = new CsvImporter();
+        const { format, entries } = importer.parse(csvContent);
+
+        if (entries.length === 0) {
+            return res.status(400).json({ error: 'CSV file contains no entries' });
+        }
+
+        const db = await importer.createDatabase(entries);
+        const allEntries = kdbxService.getAllEntries(db);
+
+        // Store as db2 if db1 exists, otherwise as db1
+        const slot = session.databases.db1 ? 'db2' : 'db1';
+        const filename = sanitizeFilename(req.file.originalname.replace(/\.csv$/i, '.kdbx'));
+
+        sessions.setDatabase(sessionToken, slot, {
+            db,
+            filename
+        });
+
+        res.json({
+            sessionToken,
+            format,
+            entryCount: allEntries.length,
+            slot,
+            filename
+        });
+    } catch (error) {
+        safeError(res, 500, error, 'CSV import failed');
     }
 });
 
