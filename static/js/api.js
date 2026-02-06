@@ -50,10 +50,11 @@ const Api = {
         return this._handle(res);
     },
 
-    async duplicates() {
+    async duplicates(criteria) {
         const res = await fetch('/api/duplicates', {
             method: 'POST',
-            headers: this._headers()
+            headers: { ...this._headers(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ criteria })
         });
         return this._handle(res);
     },

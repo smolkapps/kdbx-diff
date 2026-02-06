@@ -10,7 +10,7 @@ const Duplicates = {
         App.setStatus('Scanning for duplicates...', 'info');
 
         try {
-            const result = await Api.duplicates();
+            const result = await Api.duplicates(criteria);
             this.renderResults(result);
             App.setStatus(
                 `Found ${result.summary.totalGroups} duplicate groups (${result.summary.totalDuplicates} extra entries).`,
