@@ -47,19 +47,37 @@
         <div id="compareResults"></div>
     </div>
 
-    <!-- Transfer Tab (Phase 5) -->
+    <!-- Transfer Tab -->
     <div id="tab-transfer" class="tab-panel">
-        <p class="placeholder">Transfer feature coming soon. Upload and compare databases first.</p>
+        <div id="transferContent">
+            <p class="placeholder">Run a comparison first on the Compare tab, then return here to transfer entries.</p>
+        </div>
     </div>
 
-    <!-- Duplicates Tab (Phase 6) -->
+    <!-- Duplicates Tab -->
     <div id="tab-duplicates" class="tab-panel">
-        <p class="placeholder">Duplicate finder coming soon. Upload a database first.</p>
+        <div class="button-row">
+            <select id="dupCriteria">
+                <option value="username+url">Username + URL</option>
+                <option value="title+username">Title + Username</option>
+            </select>
+            <button id="findDuplicatesBtn">Find Duplicates</button>
+            <button id="removeDuplicatesBtn" class="btn-secondary" disabled>Remove Selected</button>
+            <button class="btn-secondary" onclick="Transfer.downloadDb('db1')">Download Cleaned DB1</button>
+        </div>
+        <div id="dupResults"></div>
     </div>
 
-    <!-- Import Tab (Phase 7) -->
+    <!-- Import Tab -->
     <div id="tab-import" class="tab-panel">
-        <p class="placeholder">Import feature coming soon. Upload databases first.</p>
+        <div class="button-row">
+            <button id="importNewBtn">Import New Only</button>
+            <button id="showSelectBtn" class="btn-secondary">Select &amp; Import</button>
+            <button id="importAllBtn" class="btn-secondary">Import All</button>
+            <button id="importSelectedBtn" disabled>Import Selected</button>
+            <button class="btn-secondary" onclick="Transfer.downloadDb('db1')">Download Updated DB1</button>
+        </div>
+        <div id="importSelectArea"></div>
     </div>
 
     <!-- Detail Modal -->
@@ -74,6 +92,9 @@
     <script src="js/api.js"></script>
     <script src="js/components/entry-table.js"></script>
     <script src="js/components/compare.js"></script>
+    <script src="js/components/transfer.js"></script>
+    <script src="js/components/duplicates.js"></script>
+    <script src="js/components/import.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

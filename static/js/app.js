@@ -21,6 +21,9 @@ const App = {
 
         // Initialize components
         Compare.init();
+        Transfer.init();
+        Duplicates.init();
+        Import.init();
     },
 
     switchTab(tabId) {
@@ -31,6 +34,11 @@ const App = {
         // Activate selected
         document.querySelector(`.tab-btn[data-tab="${tabId}"]`).classList.add('active');
         document.getElementById(tabId).classList.add('active');
+
+        // Render transfer tab content when switching to it
+        if (tabId === 'tab-transfer' && this.state.diffResults) {
+            Transfer.render();
+        }
     },
 
     enableTabs() {

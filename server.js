@@ -2,6 +2,9 @@ const express = require('express');
 const multer = require('multer');
 const KdbxService = require('./lib/KdbxService');
 const DiffEngine = require('./lib/DiffEngine');
+const TransferEngine = require('./lib/TransferEngine');
+const DuplicateFinder = require('./lib/DuplicateFinder');
+const ImportEngine = require('./lib/ImportEngine');
 const SessionStore = require('./lib/SessionStore');
 
 const app = express();
@@ -144,6 +147,86 @@ app.get('/api/download/:slot', requireSession, async (req, res) => {
         res.send(buffer);
     } catch (error) {
         console.error('Download error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/transfer — transfer selected entries between databases
+app.post('/api/transfer', requireSession, async (req, res) => {
+    try {
+        const { db1, db2 } = req.session.databases;
+        if (!db1 || !db2) {
+            return res.status(400).json({ error: 'Both databases must be uploaded' });
+        }
+        const { transfers } = req.body;
+        if (!Array.isArray(transfers) || transfers.length === 0) {
+            return res.status(400).json({ error: 'No transfers specified' });
+        }
+
+        const engine = new TransferEngine();
+        const result = engine.transfer(db1.db, db2.db, transfers);
+        res.json(result);
+    } catch (error) {
+        console.error('Transfer error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/duplicates — find duplicate entries in db1
+app.post('/api/duplicates', requireSession, async (req, res) => {
+    try {
+        const { db1 } = req.session.databases;
+        if (!db1) {
+            return res.status(400).json({ error: 'Database 1 must be uploaded' });
+        }
+        const criteria = req.body.criteria || 'username+url';
+        const finder = new DuplicateFinder();
+        const result = finder.findDuplicates(db1.db, criteria);
+        res.json(result);
+    } catch (error) {
+        console.error('Duplicates error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/duplicates/remove — remove selected duplicate entries from db1
+app.post('/api/duplicates/remove', requireSession, async (req, res) => {
+    try {
+        const { db1 } = req.session.databases;
+        if (!db1) {
+            return res.status(400).json({ error: 'Database 1 must be uploaded' });
+        }
+        const { uuids } = req.body;
+        if (!Array.isArray(uuids) || uuids.length === 0) {
+            return res.status(400).json({ error: 'No UUIDs specified' });
+        }
+
+        const finder = new DuplicateFinder();
+        const result = finder.removeEntries(db1.db, uuids);
+        res.json(result);
+    } catch (error) {
+        console.error('Remove duplicates error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// POST /api/import — import entries from db2 into db1
+app.post('/api/import', requireSession, async (req, res) => {
+    try {
+        const { db1, db2 } = req.session.databases;
+        if (!db1 || !db2) {
+            return res.status(400).json({ error: 'Both databases must be uploaded' });
+        }
+        const { mode, selectedUuids } = req.body;
+        if (!['skip-existing', 'selected', 'all'].includes(mode)) {
+            return res.status(400).json({ error: 'Mode must be skip-existing, selected, or all' });
+        }
+
+        const engine = new ImportEngine();
+        const result = engine.importEntries(db2.db, db1.db, mode, selectedUuids);
+        res.json(result);
+    } catch (error) {
+        console.error('Import error:', error);
         res.status(500).json({ error: error.message });
     }
 });
