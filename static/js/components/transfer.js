@@ -23,7 +23,9 @@ const Transfer = {
         if (diff.onlyInDb1.length > 0) {
             const section = document.createElement('div');
             section.className = 'transfer-section';
-            section.innerHTML = `<h3>Only in DB1 — copy to DB2 (${diff.onlyInDb1.length})</h3>`;
+            const h3 = document.createElement('h3');
+            h3.textContent = `Only in DB1 — copy to DB2 (${diff.onlyInDb1.length})`;
+            section.appendChild(h3);
             const table = createEntryTable(diff.onlyInDb1, { checkboxes: true, id: 'transfer-db1' });
             section.appendChild(table);
             container.appendChild(section);
@@ -33,17 +35,21 @@ const Transfer = {
         if (diff.onlyInDb2.length > 0) {
             const section = document.createElement('div');
             section.className = 'transfer-section';
-            section.innerHTML = `<h3>Only in DB2 — copy to DB1 (${diff.onlyInDb2.length})</h3>`;
+            const h3 = document.createElement('h3');
+            h3.textContent = `Only in DB2 — copy to DB1 (${diff.onlyInDb2.length})`;
+            section.appendChild(h3);
             const table = createEntryTable(diff.onlyInDb2, { checkboxes: true, id: 'transfer-db2' });
             section.appendChild(table);
             container.appendChild(section);
         }
 
-        // Modified → choose which version
+        // Modified — choose which version
         if (diff.modified.length > 0) {
             const section = document.createElement('div');
             section.className = 'transfer-section';
-            section.innerHTML = `<h3>Modified — overwrite with selected version (${diff.modified.length})</h3>`;
+            const h3 = document.createElement('h3');
+            h3.textContent = `Modified — overwrite with selected version (${diff.modified.length})`;
+            section.appendChild(h3);
 
             for (const mod of diff.modified) {
                 const row = document.createElement('div');
@@ -51,17 +57,40 @@ const Transfer = {
                 const title = mod.db1Entry.fields.Title || '(untitled)';
                 const newer = mod.timeDiff ? mod.timeDiff.newerIn : 'unknown';
 
-                row.innerHTML = `
-                    <label>
-                        <input type="checkbox" class="transfer-modified-cb" data-uuid="${mod.db1Entry.uuid}" data-direction="">
-                        <strong>${this._esc(title)}</strong>
-                    </label>
-                    <select class="transfer-direction" data-uuid="${mod.db1Entry.uuid}">
-                        <option value="toDb2" ${newer === 'db1' ? 'selected' : ''}>DB1 → DB2</option>
-                        <option value="toDb1" ${newer === 'db2' ? 'selected' : ''}>DB2 → DB1</option>
-                    </select>
-                    ${mod.timeDiff ? `<span class="newer-badge">Newer in ${newer.toUpperCase()}</span>` : ''}
-                `;
+                const label = document.createElement('label');
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.className = 'transfer-modified-cb';
+                cb.dataset.uuid = mod.db1Entry.uuid;
+                cb.dataset.direction = '';
+                label.appendChild(cb);
+                const strong = document.createElement('strong');
+                strong.textContent = title;
+                label.appendChild(strong);
+                row.appendChild(label);
+
+                const select = document.createElement('select');
+                select.className = 'transfer-direction';
+                select.dataset.uuid = mod.db1Entry.uuid;
+                const opt1 = document.createElement('option');
+                opt1.value = 'toDb2';
+                opt1.textContent = 'DB1 → DB2';
+                if (newer === 'db1') opt1.selected = true;
+                select.appendChild(opt1);
+                const opt2 = document.createElement('option');
+                opt2.value = 'toDb1';
+                opt2.textContent = 'DB2 → DB1';
+                if (newer === 'db2') opt2.selected = true;
+                select.appendChild(opt2);
+                row.appendChild(select);
+
+                if (mod.timeDiff) {
+                    const badge = document.createElement('span');
+                    badge.className = 'newer-badge';
+                    badge.textContent = `Newer in ${newer.toUpperCase()}`;
+                    row.appendChild(badge);
+                }
+
                 section.appendChild(row);
             }
             container.appendChild(section);
@@ -69,11 +98,24 @@ const Transfer = {
 
         const btnRow = document.createElement('div');
         btnRow.className = 'button-row';
-        btnRow.innerHTML = `
-            <button id="transferBtn">Transfer Selected</button>
-            <button class="btn-secondary" onclick="Transfer.downloadDb('db1')">Download DB1</button>
-            <button class="btn-secondary" onclick="Transfer.downloadDb('db2')">Download DB2</button>
-        `;
+
+        const transferBtn = document.createElement('button');
+        transferBtn.id = 'transferBtn';
+        transferBtn.textContent = 'Transfer Selected';
+        btnRow.appendChild(transferBtn);
+
+        const dlBtn1 = document.createElement('button');
+        dlBtn1.className = 'btn-secondary';
+        dlBtn1.textContent = 'Download DB1';
+        dlBtn1.addEventListener('click', () => Transfer.downloadDb('db1'));
+        btnRow.appendChild(dlBtn1);
+
+        const dlBtn2 = document.createElement('button');
+        dlBtn2.className = 'btn-secondary';
+        dlBtn2.textContent = 'Download DB2';
+        dlBtn2.addEventListener('click', () => Transfer.downloadDb('db2'));
+        btnRow.appendChild(dlBtn2);
+
         container.appendChild(btnRow);
 
         document.getElementById('transferBtn').addEventListener('click', () => this.handleTransfer());
@@ -98,12 +140,14 @@ const Transfer = {
             }
         }
 
-        // Collect modified selections
-        document.querySelectorAll('.transfer-modified-cb:checked').forEach(cb => {
+        // Collect modified selections — use Array.find instead of querySelector with interpolated UUID
+        const allCbs = [...document.querySelectorAll('.transfer-modified-cb:checked')];
+        const allSelects = [...document.querySelectorAll('.transfer-direction')];
+        for (const cb of allCbs) {
             const uuid = cb.dataset.uuid;
-            const select = document.querySelector(`.transfer-direction[data-uuid="${uuid}"]`);
-            transfers.push({ uuid, action: 'overwrite', direction: select.value });
-        });
+            const select = allSelects.find(el => el.dataset.uuid === uuid);
+            transfers.push({ uuid, action: 'overwrite', direction: select ? select.value : 'toDb2' });
+        }
 
         if (transfers.length === 0) {
             return App.setStatus('No entries selected for transfer.', 'error');
@@ -133,11 +177,5 @@ const Transfer = {
         } catch (err) {
             App.setStatus('Download failed: ' + err.message, 'error');
         }
-    },
-
-    _esc(str) {
-        const d = document.createElement('div');
-        d.textContent = str;
-        return d.innerHTML;
     }
 };
