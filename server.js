@@ -73,13 +73,6 @@ rateLimitCleanup.unref();
 // --- Security: allowed duplicate criteria ---
 const ALLOWED_CRITERIA = ['username+url', 'title+username'];
 
-<<<<<<< HEAD
-        res.setHeader('Content-Type', 'application/json'); // Set content type to JSON
-        res.send({ diffBuffer: Buffer.from(diffBuffer), diffString }); // Send both as JSON
-    } catch (error) {
-        console.error('Error comparing databases:', error);
-        res.status(500).send({ message: error.message });
-=======
 // --- Multer with file size limits and file filter ---
 const upload = multer({
     storage: multer.memoryStorage(),
@@ -100,7 +93,6 @@ const upload = multer({
             }
         }
         cb(null, true);
->>>>>>> feature/full-rewrite
     }
 });
 
