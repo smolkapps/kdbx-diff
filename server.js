@@ -10,7 +10,7 @@ const CsvImporter = require('./lib/CsvImporter');
 const SessionStore = require('./lib/SessionStore');
 
 const app = express();
-const port = process.env.PORT || 3000;
+const PREFERRED_PORT = parseInt(process.env.PORT, 10) || 3000;
 const sessions = new SessionStore();
 const kdbxService = new KdbxService();
 
@@ -463,14 +463,37 @@ app.delete('/api/session', requireSession, (req, res) => {
 });
 
 // --- Security: graceful shutdown ---
-const server = app.listen(port, () => {
-    console.log(`Server listening at http://localhost:${port}`);
-});
+let server;
+
+function startServer(port) {
+    return new Promise((resolve, reject) => {
+        const s = app.listen(port, () => resolve(s));
+        s.on('error', reject);
+    });
+}
+
+(async () => {
+    for (let port = PREFERRED_PORT; port < PREFERRED_PORT + 10; port++) {
+        try {
+            server = await startServer(port);
+            console.log(`Server listening at http://localhost:${port}`);
+            return;
+        } catch (err) {
+            if (err.code === 'EADDRINUSE') {
+                console.warn(`Port ${port} in use, trying next...`);
+                continue;
+            }
+            throw err;
+        }
+    }
+    console.error(`Could not find an open port in range ${PREFERRED_PORT}-${PREFERRED_PORT + 9}`);
+    process.exit(1);
+})();
 
 function gracefulShutdown(signal) {
     console.log(`\n${signal} received — shutting down gracefully`);
     sessions.destroy();
-    server.close(() => {
+    if (server) server.close(() => {
         console.log('Server closed');
         process.exit(0);
     });
