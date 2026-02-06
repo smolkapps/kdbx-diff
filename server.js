@@ -9,12 +9,12 @@ const ImportEngine = require('./lib/ImportEngine');
 const SessionStore = require('./lib/SessionStore');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const sessions = new SessionStore();
 const kdbxService = new KdbxService();
 
 // --- Security: UUID validation regex ---
-const UUID_REGEX = /^[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}$/i;
+const UUID_REGEX = /^(?:[0-9a-f]{8}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{4}-?[0-9a-f]{12}|[A-Za-z0-9+/]{22}==)$/;
 
 function isValidUuid(str) {
     return typeof str === 'string' && UUID_REGEX.test(str);
