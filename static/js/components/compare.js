@@ -152,6 +152,44 @@ const Compare = {
                 row.appendChild(diffTable);
             }
 
+            // Show attachment/binary diffs
+            if (mod.binaryDiffs && mod.binaryDiffs.length > 0) {
+                const binSection = document.createElement('div');
+                binSection.className = 'binary-diffs';
+                const binTitle = document.createElement('div');
+                binTitle.className = 'binary-diffs-title';
+                binTitle.textContent = 'Attachment changes:';
+                binSection.appendChild(binTitle);
+
+                for (const bd of mod.binaryDiffs) {
+                    const binRow = document.createElement('div');
+                    binRow.className = 'binary-diff-item';
+                    const statusClass = 'binary-' + bd.status;
+                    const sizeInfo = this._formatBinarySize(bd.db1Size, bd.db2Size, bd.status);
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.className = statusClass;
+                    nameSpan.textContent = bd.name;
+                    binRow.appendChild(nameSpan);
+
+                    const statusSpan = document.createElement('span');
+                    statusSpan.className = 'binary-status-badge ' + statusClass;
+                    statusSpan.textContent = bd.status.toUpperCase() + (sizeInfo ? ' ' + sizeInfo : '');
+                    binRow.appendChild(statusSpan);
+
+                    binSection.appendChild(binRow);
+                }
+                row.appendChild(binSection);
+            }
+
+            // Show history count diff
+            if (mod.historyDiff) {
+                const histDiv = document.createElement('div');
+                histDiv.className = 'history-diff';
+                histDiv.textContent = 'DB1 has ' + mod.historyDiff.db1Count + ' history entries, DB2 has ' + mod.historyDiff.db2Count;
+                row.appendChild(histDiv);
+            }
+
             wrapper.appendChild(row);
         }
 
@@ -193,6 +231,19 @@ const Compare = {
         } catch (err) {
             App.setStatus('Download failed: ' + err.message, 'error');
         }
+    },
+
+    _formatBinarySize(db1Size, db2Size, status) {
+        const fmt = (bytes) => {
+            if (bytes === 0) return '0 B';
+            if (bytes < 1024) return bytes + ' B';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+        };
+        if (status === 'added') return '(' + fmt(db2Size) + ')';
+        if (status === 'removed') return '(' + fmt(db1Size) + ')';
+        if (status === 'modified') return '(' + fmt(db1Size) + ' -> ' + fmt(db2Size) + ')';
+        return '';
     },
 
     escapeHtml(str) {
