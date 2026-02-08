@@ -1,0 +1,10 @@
+node_modules
+.git
+.DS_Store
+*.log
+.env
+test-unencrypted.kdbx
+PLAN.md
+KDBXDiffSpec.md
+CLAUDE.md
+readme.txt

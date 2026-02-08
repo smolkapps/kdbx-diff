@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const crypto = require('crypto');
 const express = require('express');
 const multer = require('multer');
