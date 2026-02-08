@@ -1,10 +1,37 @@
 {
   "name": "kdbx-diff-analyzer",
   "version": "1.0.0",
-  "description": "A tool to compare two KDBX databases and output the differences",
+  "description": "Compare, transfer, deduplicate, and import entries between KeePass (.kdbx) database files",
   "main": "server.js",
+  "bin": {
+    "kdbx-diff": "server.js"
+  },
   "scripts": {
     "start": "node server.js"
+  },
+  "keywords": [
+    "keepass",
+    "kdbx",
+    "password",
+    "diff",
+    "compare",
+    "merge",
+    "transfer",
+    "deduplicate",
+    "import"
+  ],
+  "author": "Michael Smolkin",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/smolkapps/kdbx-diff.git"
+  },
+  "homepage": "https://github.com/smolkapps/kdbx-diff#readme",
+  "bugs": {
+    "url": "https://github.com/smolkapps/kdbx-diff/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "express": "^4.18.2",
