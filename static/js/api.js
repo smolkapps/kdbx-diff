@@ -88,11 +88,11 @@ const Api = {
         return this._handle(res);
     },
 
-    async searchDetail(uuid, source) {
+    async searchDetail(uuid, source, { showPasswords = false } = {}) {
         const res = await fetch('/api/search/detail', {
             method: 'POST',
             headers: { ...this._headers(), 'Content-Type': 'application/json' },
-            body: JSON.stringify({ uuid, source })
+            body: JSON.stringify({ uuid, source, showPasswords })
         });
         return this._handle(res);
     },

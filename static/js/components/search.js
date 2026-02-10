@@ -140,6 +140,7 @@ const Search = {
         showPwBtn.textContent = 'Show Passwords';
         showPwBtn.style.cssText = 'padding: 4px 12px; font-size: 12px;';
         let passwordsVisible = false;
+        let unmaskedDetail = null; // cached after first fetch
         headerRow.appendChild(showPwBtn);
 
         body.appendChild(headerRow);
@@ -206,21 +207,44 @@ const Search = {
             tr.appendChild(tdOther);
 
             if (isPassword) {
-                passwordCells.push({ tdSource, tdOther, val1, val2, hasCounterpart: !!counterpart });
+                passwordCells.push({ tdSource, tdOther, hasCounterpart: !!counterpart });
             }
 
             tbody.appendChild(tr);
         }
 
-        // Show/hide password toggle
-        showPwBtn.addEventListener('click', () => {
-            passwordsVisible = !passwordsVisible;
-            showPwBtn.textContent = passwordsVisible ? 'Hide Passwords' : 'Show Passwords';
-            for (const pc of passwordCells) {
-                pc.tdSource.textContent = passwordsVisible ? pc.val1 : '********';
-                pc.tdOther.textContent = pc.hasCounterpart
-                    ? (passwordsVisible ? pc.val2 : '********')
-                    : '\u2014';
+        // Show/hide password toggle — fetches unmasked passwords on demand
+        showPwBtn.addEventListener('click', async () => {
+            if (!passwordsVisible) {
+                showPwBtn.disabled = true;
+                showPwBtn.textContent = 'Loading...';
+                try {
+                    if (!unmaskedDetail) {
+                        unmaskedDetail = await Api.searchDetail(
+                            sourceEntry.uuid, source, { showPasswords: true }
+                        );
+                    }
+                    passwordsVisible = true;
+                    showPwBtn.textContent = 'Hide Passwords';
+                    const srcPw = (unmaskedDetail.sourceEntry?.fields || {}).Password || '';
+                    const cptPw = (unmaskedDetail.counterpart?.fields || {}).Password || '';
+                    for (const pc of passwordCells) {
+                        pc.tdSource.textContent = srcPw;
+                        pc.tdOther.textContent = pc.hasCounterpart ? cptPw : '\u2014';
+                    }
+                } catch (err) {
+                    showPwBtn.textContent = 'Show Passwords';
+                    App.setStatus('Failed to load passwords: ' + err.message, 'error');
+                } finally {
+                    showPwBtn.disabled = false;
+                }
+            } else {
+                passwordsVisible = false;
+                showPwBtn.textContent = 'Show Passwords';
+                for (const pc of passwordCells) {
+                    pc.tdSource.textContent = '********';
+                    pc.tdOther.textContent = pc.hasCounterpart ? '********' : '\u2014';
+                }
             }
         });
 

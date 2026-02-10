@@ -452,8 +452,9 @@ app.post('/api/search/detail', requireSession, async (req, res) => {
             return res.status(400).json({ error: 'Source database not loaded' });
         }
 
+        const showPasswords = req.body.showPasswords === true;
         const engine = new SearchEngine();
-        const result = engine.findCounterpart(sourceDb.db, targetDb?.db || null, uuid);
+        const result = engine.findCounterpart(sourceDb.db, targetDb?.db || null, uuid, { showPasswords });
         res.json(result);
     } catch (error) {
         safeError(res, 500, error, 'Detail lookup failed');
