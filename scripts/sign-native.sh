@@ -1,6 +1,7 @@
 #!/bin/sh
 # Sign native Node.js addons for macOS Gatekeeper.
 # Uses a Developer ID if available, otherwise falls back to ad-hoc signing.
+# Also removes the quarantine flag that macOS sets on downloaded binaries.
 # Runs automatically as an npm postinstall hook.
 
 set -e
@@ -17,9 +18,12 @@ if [ -z "$ARGON2_NODE" ]; then
     exit 0
 fi
 
-# Try to find a Developer ID signing identity
+# Remove quarantine flag (set by macOS on downloaded/npm-installed binaries)
+xattr -dr com.apple.quarantine node_modules/argon2 2>/dev/null || true
+
+# Try to find a signing identity (Developer ID first, then Apple Development)
 IDENTITY=$(security find-identity -v -p codesigning 2>/dev/null \
-    | grep "Developer ID Application" \
+    | grep -E "Developer ID Application|Apple Development" \
     | head -1 \
     | sed 's/.*"\(.*\)".*/\1/' || true)
 
@@ -27,7 +31,7 @@ if [ -n "$IDENTITY" ]; then
     echo "Signing $ARGON2_NODE with: $IDENTITY"
     codesign -s "$IDENTITY" --force "$ARGON2_NODE"
 else
-    echo "No Developer ID found — ad-hoc signing $ARGON2_NODE"
+    echo "No signing identity found — ad-hoc signing $ARGON2_NODE"
     codesign -s - --force "$ARGON2_NODE"
 fi
 
