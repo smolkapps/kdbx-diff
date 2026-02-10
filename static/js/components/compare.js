@@ -20,7 +20,7 @@ const Compare = {
         if (db1 && !pw1 && !kf1) return App.setStatus('Database 1 requires a password or key file.', 'error');
         if (db2 && !pw2 && !kf2) return App.setStatus('Database 2 requires a password or key file.', 'error');
 
-        App.setStatus('Uploading databases...', 'info');
+        App.setStatus('Loading databases...', 'info');
 
         const formData = new FormData();
         if (db1) formData.append('db1', db1);
@@ -47,7 +47,7 @@ const Compare = {
             document.getElementById('compareBtn').disabled = false;
             document.getElementById('downloadSection').style.display = 'flex';
         } catch (err) {
-            App.setStatus('Upload failed: ' + err.message, 'error');
+            App.setStatus('Failed to load: ' + err.message, 'error');
         }
     },
 
