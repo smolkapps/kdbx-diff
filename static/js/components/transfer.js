@@ -1,7 +1,7 @@
 // Transfer tab component
 const Transfer = {
     init() {
-        document.getElementById('transferBtn').addEventListener('click', () => this.handleTransfer());
+        // transferBtn is dynamically created in render(), event listener bound there
     },
 
     render() {

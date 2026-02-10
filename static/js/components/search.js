@@ -127,11 +127,22 @@ const Search = {
             return;
         }
 
-        // Header
+        // Header row with title + show passwords toggle
+        const headerRow = document.createElement('div');
+        headerRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;';
+
         const h4 = document.createElement('h4');
-        h4.style.marginBottom = '12px';
         h4.textContent = 'Side-by-Side Comparison';
-        body.appendChild(h4);
+        headerRow.appendChild(h4);
+
+        const showPwBtn = document.createElement('button');
+        showPwBtn.className = 'btn-secondary';
+        showPwBtn.textContent = 'Show Passwords';
+        showPwBtn.style.cssText = 'padding: 4px 12px; font-size: 12px;';
+        let passwordsVisible = false;
+        headerRow.appendChild(showPwBtn);
+
+        body.appendChild(headerRow);
 
         if (!counterpart) {
             const note = document.createElement('p');
@@ -160,6 +171,7 @@ const Search = {
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
+        const passwordCells = []; // track password cells for show/hide toggle
 
         // Collect all field keys
         const allKeys = new Set();
@@ -173,8 +185,7 @@ const Search = {
         for (const key of allKeys) {
             const val1 = (sourceEntry.fields || {})[key] || '';
             const val2 = counterpart ? ((counterpart.fields || {})[key] || '') : '';
-            const display1 = key === 'Password' ? '********' : val1;
-            const display2 = key === 'Password' ? '********' : val2;
+            const isPassword = key === 'Password';
 
             const tr = document.createElement('tr');
             if (counterpart && val1 !== val2) {
@@ -187,15 +198,31 @@ const Search = {
             tr.appendChild(tdField);
 
             const tdSource = document.createElement('td');
-            tdSource.textContent = display1;
+            tdSource.textContent = isPassword ? '********' : val1;
             tr.appendChild(tdSource);
 
             const tdOther = document.createElement('td');
-            tdOther.textContent = counterpart ? display2 : '\u2014';
+            tdOther.textContent = counterpart ? (isPassword ? '********' : val2) : '\u2014';
             tr.appendChild(tdOther);
+
+            if (isPassword) {
+                passwordCells.push({ tdSource, tdOther, val1, val2, hasCounterpart: !!counterpart });
+            }
 
             tbody.appendChild(tr);
         }
+
+        // Show/hide password toggle
+        showPwBtn.addEventListener('click', () => {
+            passwordsVisible = !passwordsVisible;
+            showPwBtn.textContent = passwordsVisible ? 'Hide Passwords' : 'Show Passwords';
+            for (const pc of passwordCells) {
+                pc.tdSource.textContent = passwordsVisible ? pc.val1 : '********';
+                pc.tdOther.textContent = pc.hasCounterpart
+                    ? (passwordsVisible ? pc.val2 : '********')
+                    : '\u2014';
+            }
+        });
 
         // Group path row
         const grpTr = document.createElement('tr');
@@ -242,7 +269,7 @@ const Search = {
         table.appendChild(tbody);
         body.appendChild(table);
 
-        // Reviewed checkbox footer
+        // Footer with reviewed checkbox
         const footer = document.createElement('div');
         footer.className = 'detail-footer';
 
@@ -258,7 +285,6 @@ const Search = {
             } else {
                 this.reviewedUuids.delete(uuid);
             }
-            // Update row styling in results table
             this._updateRowReviewed(uuid, cb.checked);
         });
 
