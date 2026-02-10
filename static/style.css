@@ -273,6 +273,16 @@ select#dupCriteria {
 .keep-badge { background: #e8f5e9; color: #2e7d32; padding: 1px 6px; border-radius: 8px; font-size: 11px; font-weight: 600; }
 .remove-badge { background: #ffebee; color: #c62828; padding: 1px 6px; border-radius: 8px; font-size: 11px; font-weight: 600; }
 
+/* Import direction label */
+.import-direction {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-size: 14px;
+    margin-bottom: 12px;
+}
+
 /* CSV Import tab */
 .csv-import-form { margin-bottom: 20px; }
 .csv-description { margin-bottom: 8px; color: #666; font-size: 14px; }
