@@ -77,6 +77,26 @@ const Api = {
         return data;
     },
 
+    async search(query, fields) {
+        const body = { query };
+        if (fields) body.fields = fields;
+        const res = await fetch('/api/search', {
+            method: 'POST',
+            headers: { ...this._headers(), 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        return this._handle(res);
+    },
+
+    async searchDetail(uuid, source) {
+        const res = await fetch('/api/search/detail', {
+            method: 'POST',
+            headers: { ...this._headers(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uuid, source })
+        });
+        return this._handle(res);
+    },
+
     async importEntries(mode, selectedUuids) {
         const res = await fetch('/api/import', {
             method: 'POST',

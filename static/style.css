@@ -302,3 +302,99 @@ select#dupCriteria {
 
 /* History diff display */
 .history-diff { margin-top: 6px; font-size: 12px; color: #666; font-style: italic; }
+
+/* Search tab */
+.search-form {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.search-form input[type="text"] {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.search-form input[type="text"]:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+/* Wide modal for side-by-side */
+.modal-content-wide {
+    max-width: 850px;
+}
+
+/* Side-by-side detail table */
+.detail-side-by-side {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.detail-side-by-side th,
+.detail-side-by-side td {
+    padding: 6px 10px;
+    border: 1px solid #eee;
+    text-align: left;
+    vertical-align: top;
+    word-break: break-word;
+}
+.detail-side-by-side th {
+    background: #fafafa;
+    font-weight: 600;
+    position: sticky;
+    top: 0;
+}
+.detail-side-by-side td:first-child {
+    width: 110px;
+    white-space: nowrap;
+}
+.detail-diff-row {
+    background: #fff8e1;
+}
+
+/* "Only in DBx" note */
+.search-only-note {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    margin-bottom: 12px;
+}
+
+/* Reviewed state on search result rows */
+.search-reviewed {
+    background: #e8f5e9 !important;
+    position: relative;
+}
+.search-reviewed td:last-child::after {
+    content: '\2713';
+    color: #2e7d32;
+    font-weight: 700;
+    margin-left: 6px;
+}
+
+/* Detail modal footer with reviewed checkbox */
+.detail-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #eee;
+}
+.reviewed-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+}
+.reviewed-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: #4CAF50;
+}

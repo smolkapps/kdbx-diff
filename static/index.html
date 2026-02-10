@@ -14,6 +14,7 @@
         <button class="tab-btn" data-tab="tab-transfer" data-requires-upload disabled>Transfer</button>
         <button class="tab-btn" data-tab="tab-duplicates" data-requires-upload disabled>Duplicates</button>
         <button class="tab-btn" data-tab="tab-import" data-requires-upload disabled>Import</button>
+        <button class="tab-btn" data-tab="tab-search" data-requires-upload disabled>Search</button>
         <button class="tab-btn" data-tab="tab-csv-import">CSV Import</button>
     </nav>
 
@@ -81,6 +82,15 @@
         <div id="importSelectArea"></div>
     </div>
 
+    <!-- Search Tab -->
+    <div id="tab-search" class="tab-panel">
+        <div class="search-form">
+            <input type="text" id="searchInput" placeholder="Search by title, username, or URL...">
+            <button id="searchBtn">Search</button>
+        </div>
+        <div id="searchResults"></div>
+    </div>
+
     <!-- CSV Import Tab -->
     <div id="tab-csv-import" class="tab-panel">
         <div class="csv-import-form">
@@ -98,7 +108,7 @@
 
     <!-- Detail Modal -->
     <div id="detailModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content modal-content-wide">
             <span class="modal-close">&times;</span>
             <h3>Entry Details</h3>
             <div id="detailBody"></div>
@@ -112,6 +122,7 @@
     <script src="js/components/duplicates.js"></script>
     <script src="js/components/import.js"></script>
     <script src="js/components/csv-import.js"></script>
+    <script src="js/components/search.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>

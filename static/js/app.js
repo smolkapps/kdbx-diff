@@ -25,6 +25,7 @@ const App = {
         Duplicates.init();
         Import.init();
         CsvImport.init();
+        Search.init();
     },
 
     switchTab(tabId) {

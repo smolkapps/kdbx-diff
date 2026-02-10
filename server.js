@@ -7,6 +7,7 @@ const DiffEngine = require('./lib/DiffEngine');
 const TransferEngine = require('./lib/TransferEngine');
 const DuplicateFinder = require('./lib/DuplicateFinder');
 const ImportEngine = require('./lib/ImportEngine');
+const SearchEngine = require('./lib/SearchEngine');
 const CsvImporter = require('./lib/CsvImporter');
 const SessionStore = require('./lib/SessionStore');
 
@@ -389,6 +390,73 @@ app.post('/api/import', requireSession, async (req, res) => {
         res.json(result);
     } catch (error) {
         safeError(res, 500, error, 'Import failed');
+    }
+});
+
+// --- Security: allowed search fields ---
+const ALLOWED_SEARCH_FIELDS = ['Title', 'UserName', 'URL', 'Notes'];
+
+// POST /api/search — search entries across both databases
+app.post('/api/search', requireSession, async (req, res) => {
+    try {
+        const { query, fields } = req.body;
+
+        if (typeof query !== 'string' || query.trim().length === 0) {
+            return res.status(400).json({ error: 'Search query is required' });
+        }
+        if (query.length > 200) {
+            return res.status(400).json({ error: 'Search query must be 200 characters or less' });
+        }
+
+        // Validate fields if provided
+        let searchFields;
+        if (fields) {
+            if (!Array.isArray(fields) || fields.length === 0) {
+                return res.status(400).json({ error: 'Fields must be a non-empty array' });
+            }
+            for (const f of fields) {
+                if (!ALLOWED_SEARCH_FIELDS.includes(f)) {
+                    return res.status(400).json({ error: 'Invalid search field: ' + f + '. Allowed: ' + ALLOWED_SEARCH_FIELDS.join(', ') });
+                }
+            }
+            searchFields = fields;
+        }
+
+        const { db1, db2 } = req.session.databases;
+        const engine = new SearchEngine();
+        const opts = searchFields ? { fields: searchFields } : {};
+        const result = engine.search(db1?.db || null, db2?.db || null, query.trim(), opts);
+        res.json(result);
+    } catch (error) {
+        safeError(res, 500, error, 'Search failed');
+    }
+});
+
+// POST /api/search/detail — get entry + counterpart for side-by-side view
+app.post('/api/search/detail', requireSession, async (req, res) => {
+    try {
+        const { uuid, source } = req.body;
+
+        if (!isValidUuid(uuid)) {
+            return res.status(400).json({ error: 'Invalid UUID' });
+        }
+        if (source !== 'db1' && source !== 'db2') {
+            return res.status(400).json({ error: 'Source must be db1 or db2' });
+        }
+
+        const { db1, db2 } = req.session.databases;
+        const sourceDb = source === 'db1' ? db1 : db2;
+        const targetDb = source === 'db1' ? db2 : db1;
+
+        if (!sourceDb) {
+            return res.status(400).json({ error: 'Source database not loaded' });
+        }
+
+        const engine = new SearchEngine();
+        const result = engine.findCounterpart(sourceDb.db, targetDb?.db || null, uuid);
+        res.json(result);
+    } catch (error) {
+        safeError(res, 500, error, 'Detail lookup failed');
     }
 });
 
