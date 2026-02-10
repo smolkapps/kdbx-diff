@@ -83,20 +83,12 @@ const upload = multer({
         files: 4
     },
     fileFilter(req, file, cb) {
-        if (file.fieldname === 'db1' || file.fieldname === 'db2') {
-            if (!file.originalname.toLowerCase().endsWith('.kdbx')) {
-                return cb(new Error('Only .kdbx files are accepted for databases'));
-            }
-        } else if (file.fieldname === 'keyFile1' || file.fieldname === 'keyFile2') {
-            const ext = file.originalname.toLowerCase();
-            const validKeyExts = ['.key', '.keyx', '.keyfile', '.xml'];
-            if (!validKeyExts.some(e => ext.endsWith(e))) {
-                return cb(new Error('Key files must be .key, .keyx, .keyfile, or .xml'));
-            }
-        } else if (file.fieldname === 'csvFile') {
-            if (!file.originalname.toLowerCase().endsWith('.csv')) {
-                return cb(new Error('Only .csv files are accepted for CSV import'));
-            }
+        // No filename-based filtering — file extensions are meaningless for
+        // content validation. kdbxweb will reject non-KDBX data at parse time,
+        // and the CSV parser will reject non-CSV data. Only field names matter.
+        const validFields = ['db1', 'db2', 'keyFile1', 'keyFile2', 'csvFile'];
+        if (!validFields.includes(file.fieldname)) {
+            return cb(new Error('Unexpected file field'));
         }
         cb(null, true);
     }
@@ -251,13 +243,7 @@ app.use((err, req, res, next) => {
         }
         return res.status(400).json({ error: 'File upload error' });
     }
-    if (err.message && err.message.includes('Only .kdbx files')) {
-        return res.status(400).json({ error: err.message });
-    }
-    if (err.message && err.message.includes('Key files must be')) {
-        return res.status(400).json({ error: err.message });
-    }
-    if (err.message && err.message.includes('Only .csv files')) {
+    if (err.message && err.message.includes('Unexpected file field')) {
         return res.status(400).json({ error: err.message });
     }
     next(err);
