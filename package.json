@@ -7,7 +7,8 @@
     "kdbx-diff": "server.js"
   },
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "postinstall": "sh scripts/sign-native.sh"
   },
   "keywords": [
     "keepass",
