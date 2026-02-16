@@ -95,7 +95,16 @@ const upload = multer({
     }
 });
 
-app.use(express.json());
+app.use(express.json({ limit: '50kb' }));
+
+// --- Security: reject non-localhost connections ---
+app.use((req, res, next) => {
+    const addr = req.socket.remoteAddress;
+    if (addr !== '127.0.0.1' && addr !== '::1' && addr !== '::ffff:127.0.0.1') {
+        return res.status(403).json({ error: 'Only localhost connections are allowed' });
+    }
+    next();
+});
 
 // --- Security: rate limiting middleware (API routes only) ---
 app.use('/api/', (req, res, next) => {
@@ -129,6 +138,19 @@ app.use((req, res, next) => {
             }
         } catch {
             return res.status(403).json({ error: 'Invalid origin header' });
+        }
+        return next();
+    }
+    // Fallback: check Referer when Origin is absent
+    const referer = req.headers['referer'];
+    if (referer) {
+        try {
+            const url = new URL(referer);
+            if (url.hostname !== 'localhost' && url.hostname !== '127.0.0.1') {
+                return res.status(403).json({ error: 'Cross-origin requests are not allowed' });
+            }
+        } catch {
+            return res.status(403).json({ error: 'Invalid referer header' });
         }
     }
     next();
@@ -333,6 +355,18 @@ app.post('/api/transfer', requireSession, async (req, res) => {
             }
         }
 
+        // Validate action and direction values
+        const VALID_ACTIONS = ['copy', 'overwrite'];
+        const VALID_DIRECTIONS = ['toDb1', 'toDb2'];
+        for (const t of transfers) {
+            if (!VALID_ACTIONS.includes(t.action)) {
+                return res.status(400).json({ error: 'Invalid action. Must be copy or overwrite' });
+            }
+            if (!VALID_DIRECTIONS.includes(t.direction)) {
+                return res.status(400).json({ error: 'Invalid direction. Must be toDb1 or toDb2' });
+            }
+        }
+
         const engine = new TransferEngine();
         const result = engine.transfer(db1.db, db2.db, transfers);
         res.json(result);
@@ -485,20 +519,8 @@ app.post('/api/search/detail', requireSession, async (req, res) => {
 });
 
 // POST /api/csv-import — import CSV file from browser password exports
-app.post('/api/csv-import', upload.single('csvFile'), async (req, res) => {
+app.post('/api/csv-import', requireSession, upload.single('csvFile'), async (req, res) => {
     try {
-        const token = req.headers['x-session-token'];
-        let session;
-        let sessionToken;
-
-        if (token && sessions.getSession(token)) {
-            session = sessions.getSession(token);
-            sessionToken = token;
-        } else {
-            sessionToken = sessions.createSession();
-            session = sessions.getSession(sessionToken);
-        }
-
         if (!req.file) {
             return res.status(400).json({ error: 'No CSV file provided' });
         }
@@ -514,17 +536,13 @@ app.post('/api/csv-import', upload.single('csvFile'), async (req, res) => {
         const db = await importer.createDatabase(entries);
         const allEntries = kdbxService.getAllEntries(db);
 
-        // Store as db2 if db1 exists, otherwise as db1
-        const slot = session.databases.db1 ? 'db2' : 'db1';
+        const token = req.headers['x-session-token'];
+        const slot = req.session.databases.db1 ? 'db2' : 'db1';
         const filename = sanitizeFilename(req.file.originalname.replace(/\.csv$/i, '.kdbx'));
 
-        sessions.setDatabase(sessionToken, slot, {
-            db,
-            filename
-        });
+        sessions.setDatabase(token, slot, { db, filename });
 
         res.json({
-            sessionToken,
             format,
             entryCount: allEntries.length,
             slot,
