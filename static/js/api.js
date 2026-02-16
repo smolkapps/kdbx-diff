@@ -40,7 +40,6 @@ const Api = {
         this.sessionToken = null;
     },
 
-    // Future: transfer, duplicates, import
     async transfer(transfers) {
         const res = await this._fetch('/api/transfer', {
             method: 'POST',
@@ -50,10 +49,11 @@ const Api = {
         return this._handle(res);
     },
 
-    async duplicates() {
+    async duplicates(criteria) {
         const res = await this._fetch('/api/duplicates', {
             method: 'POST',
-            headers: this._headers()
+            headers: { ...this._headers(), 'Content-Type': 'application/json' },
+            body: JSON.stringify({ criteria })
         });
         return this._handle(res);
     },

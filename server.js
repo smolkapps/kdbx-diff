@@ -121,6 +121,7 @@ app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'DENY');
     res.setHeader('Referrer-Policy', 'no-referrer');
     res.setHeader('Content-Security-Policy', "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'");
+    res.setHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()');
     next();
 });
 
@@ -347,6 +348,9 @@ app.post('/api/transfer', requireSession, async (req, res) => {
         if (!Array.isArray(transfers) || transfers.length === 0) {
             return res.status(400).json({ error: 'No transfers specified' });
         }
+        if (transfers.length > 1000) {
+            return res.status(400).json({ error: 'Transfer list limited to 1000 entries' });
+        }
 
         // Validate UUIDs in transfer list
         for (const t of transfers) {
@@ -405,6 +409,9 @@ app.post('/api/duplicates/remove', requireSession, async (req, res) => {
         if (!Array.isArray(uuids) || uuids.length === 0) {
             return res.status(400).json({ error: 'No UUIDs specified' });
         }
+        if (uuids.length > 1000) {
+            return res.status(400).json({ error: 'Removal list limited to 1000 UUIDs' });
+        }
 
         // Validate all UUIDs
         for (const uuid of uuids) {
@@ -434,7 +441,13 @@ app.post('/api/import', requireSession, async (req, res) => {
         }
 
         // Validate UUIDs when mode is 'selected'
-        if (mode === 'selected' && Array.isArray(selectedUuids)) {
+        if (mode === 'selected') {
+            if (!Array.isArray(selectedUuids) || selectedUuids.length === 0) {
+                return res.status(400).json({ error: 'selectedUuids must be a non-empty array when mode is selected' });
+            }
+            if (selectedUuids.length > 10000) {
+                return res.status(400).json({ error: 'Import selection limited to 10000 entries' });
+            }
             for (const uuid of selectedUuids) {
                 if (!isValidUuid(uuid)) {
                     return res.status(400).json({ error: 'Invalid UUID in import selection' });
@@ -470,6 +483,9 @@ app.post('/api/search', requireSession, async (req, res) => {
         if (fields) {
             if (!Array.isArray(fields) || fields.length === 0) {
                 return res.status(400).json({ error: 'Fields must be a non-empty array' });
+            }
+            if (fields.length > ALLOWED_SEARCH_FIELDS.length) {
+                return res.status(400).json({ error: 'Too many search fields specified' });
             }
             for (const f of fields) {
                 if (!ALLOWED_SEARCH_FIELDS.includes(f)) {
@@ -555,7 +571,8 @@ app.post('/api/csv-import', requireSession, upload.single('csvFile'), async (req
 
 // DELETE /api/session — destroy session
 app.delete('/api/session', requireSession, (req, res) => {
-    sessions.destroySession(req.session.id);
+    const token = req.headers['x-session-token'];
+    sessions.destroySession(token);
     res.json({ ok: true });
 });
 

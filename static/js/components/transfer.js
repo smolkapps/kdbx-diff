@@ -10,12 +10,18 @@ const Transfer = {
 
         const diff = App.state.diffResults;
         if (!diff) {
-            container.innerHTML = '<p class="placeholder">Run a comparison first on the Compare tab.</p>';
+            const p = document.createElement('p');
+            p.className = 'placeholder';
+            p.textContent = 'Run a comparison first on the Compare tab.';
+            container.appendChild(p);
             return;
         }
 
         if (diff.onlyInDb1.length === 0 && diff.onlyInDb2.length === 0 && diff.modified.length === 0) {
-            container.innerHTML = '<p class="placeholder">Databases are identical. Nothing to transfer.</p>';
+            const p = document.createElement('p');
+            p.className = 'placeholder';
+            p.textContent = 'Databases are identical. Nothing to transfer.';
+            container.appendChild(p);
             return;
         }
 
