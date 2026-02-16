@@ -3,6 +3,7 @@ const Duplicates = {
     init() {
         document.getElementById('findDuplicatesBtn').addEventListener('click', () => this.handleFind());
         document.getElementById('removeDuplicatesBtn').addEventListener('click', () => this.handleRemove());
+        document.getElementById('dupDownloadBtn').addEventListener('click', () => Transfer.downloadDb('db1'));
     },
 
     async handleFind() {
@@ -23,7 +24,7 @@ const Duplicates = {
 
     renderResults(result) {
         const container = document.getElementById('dupResults');
-        container.innerHTML = '';
+        container.textContent = '';
 
         if (result.groups.length === 0) {
             container.innerHTML = '<p class="placeholder">No duplicates found.</p>';

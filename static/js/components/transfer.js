@@ -6,7 +6,7 @@ const Transfer = {
 
     render() {
         const container = document.getElementById('transferContent');
-        container.innerHTML = '';
+        container.textContent = '';
 
         const diff = App.state.diffResults;
         if (!diff) {

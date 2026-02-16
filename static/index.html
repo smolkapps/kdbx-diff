@@ -76,7 +76,7 @@
             </select>
             <button id="findDuplicatesBtn">Find Duplicates</button>
             <button id="removeDuplicatesBtn" class="btn-secondary" disabled>Remove Selected</button>
-            <button class="btn-secondary" onclick="Transfer.downloadDb('db1')">Download Cleaned DB1</button>
+            <button class="btn-secondary" id="dupDownloadBtn">Download Cleaned DB1</button>
         </div>
         <div id="dupResults"></div>
     </div>
@@ -89,7 +89,7 @@
             <button id="showSelectBtn" class="btn-secondary">Select &amp; Import</button>
             <button id="importAllBtn" class="btn-secondary">Import All</button>
             <button id="importSelectedBtn" disabled>Import Selected</button>
-            <button class="btn-secondary" onclick="Transfer.downloadDb('db1')">Download Updated DB1</button>
+            <button class="btn-secondary" id="importDownloadBtn">Download Updated DB1</button>
             <div class="split-btn-group">
                 <button id="extractBtn" class="btn-secondary split-btn-main">Extract Titles &amp; URLs</button><button id="extractDropdownBtn" class="btn-secondary split-btn-arrow">&#9662;</button>
                 <div id="extractMenu" class="split-btn-menu" style="display:none">
