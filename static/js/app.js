@@ -12,9 +12,14 @@ const App = {
             btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
         });
 
-        // Modal close
+        // Modal close (click overlay/X or press Escape)
         document.getElementById('detailModal').addEventListener('click', (e) => {
             if (e.target.id === 'detailModal' || e.target.classList.contains('modal-close')) {
+                document.getElementById('detailModal').style.display = 'none';
+            }
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
                 document.getElementById('detailModal').style.display = 'none';
             }
         });

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node server.js",
+    "test": "node --test 'test/**/*.test.js'",
     "postinstall": "sh scripts/sign-native.sh"
   },
   "keywords": [

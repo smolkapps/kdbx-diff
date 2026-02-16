@@ -44,7 +44,10 @@ const Import = {
             ];
 
             if (allEntries.length === 0) {
-                container.innerHTML = '<p class="placeholder">No entries available to import from DB2.</p>';
+                const p = document.createElement('p');
+                p.className = 'placeholder';
+                p.textContent = 'No entries available to import from DB2.';
+                container.appendChild(p);
                 return;
             }
 

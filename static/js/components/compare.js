@@ -541,11 +541,5 @@ const Compare = {
         if (status === 'removed') return '(' + fmt(db1Size) + ')';
         if (status === 'modified') return '(' + fmt(db1Size) + ' -> ' + fmt(db2Size) + ')';
         return '';
-    },
-
-    escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str;
-        return div.innerHTML;
     }
 };

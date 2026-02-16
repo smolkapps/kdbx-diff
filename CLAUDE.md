@@ -10,8 +10,7 @@ KDBX Diff Analyzer is a Node.js web application for comparing, transferring, ded
 
 - **Install dependencies:** `npm install`
 - **Start the server:** `npm start` (runs `node server.js` on port 3000)
-
-There are no test or lint scripts configured.
+- **Run tests:** `npm test` (uses Node.js built-in `node:test`, no extra dependencies)
 
 ## Architecture
 
@@ -43,7 +42,7 @@ Express server with session-based architecture. Session token via `X-Session-Tok
 
 ### Frontend (`static/`)
 
-Tabbed SPA: **Compare** | **Transfer** | **Duplicates** | **Import**
+Tabbed SPA: **Compare** | **Transfer** | **Duplicates** | **Import** | **Search** | **CSV Import**
 
 - **`static/js/api.js`** — Centralized API client, manages session token
 - **`static/js/app.js`** — Tab switching, state management, status messages
@@ -75,14 +74,15 @@ The following hardening measures have been applied:
 - **Filename injection prevention**: `sanitizeFilename()` strips path separators, control characters, and enforces `.kdbx` extension on download endpoints
 
 ### High
-- **XSS prevention**: `transfer.js` and `duplicates.js` use DOM APIs (`createElement`, `textContent`, `dataset`) instead of `innerHTML` with interpolated UUIDs. CSS selector injection fixed by using `Array.find()` instead of string interpolation in `querySelector`
+- **XSS prevention**: All frontend components use DOM APIs (`createElement`, `textContent`, `dataset`) instead of `innerHTML`. CSS selector injection fixed by using `Array.find()` instead of string interpolation in `querySelector`
+- **Array size limits**: Transfer (1000), duplicate removal (1000), import selection (10000) endpoints enforce maximum array sizes to prevent resource exhaustion
 - **CSRF protection**: Origin header validation middleware rejects non-localhost origins on state-changing requests. `X-Session-Token` custom header provides additional implicit CSRF defense
 - **Upload limits**: Multer configured with 10 MB file size limit, max 4 files, and file extension validation (`.kdbx` for databases, `.key/.keyx/.keyfile/.xml` for key files)
 - **Timing-safe sessions**: `SessionStore.getSession()` uses `crypto.timingSafeEqual()` to prevent timing attacks on session token lookup
 
 ### Medium
 - **Rate limiting**: In-memory rate limiter (30 req/min/IP) with periodic cleanup, no external dependency
-- **Security headers**: CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy set on all responses
+- **Security headers**: CSP, X-Content-Type-Options, X-Frame-Options, Referrer-Policy, Permissions-Policy set on all responses
 - **UUID validation**: All endpoints that accept UUIDs validate format before processing
 - **Credentials removed from sessions**: Database credentials are no longer stored in session objects (kdbxweb associates them at load time)
 - **Criteria validation**: Duplicate finder allowlists `username+url` and `title+username` criteria values
@@ -96,7 +96,11 @@ The following hardening measures have been applied:
 ### Audit Tool
 Use the `security-auditor` agent (`~/.claude/agents/security-auditor.md`) for future OWASP-based audits of this or any project.
 
+### Test Suite
+- **136 tests** using Node.js built-in `node:test` — zero external test dependencies
+- Covers: SessionStore, utils, DiffEngine, CsvImporter, server validation helpers
+- Security-focused: timing-safe lookups, UUID validation, filename sanitization, array limits
+
 ## Known Limitations
 
 - Entry matching falls back to Title+UserName when UUIDs don't match across databases
-- No attachment or history comparison

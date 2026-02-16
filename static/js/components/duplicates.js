@@ -11,7 +11,7 @@ const Duplicates = {
         App.setStatus('Scanning for duplicates...', 'info');
 
         try {
-            const result = await Api.duplicates();
+            const result = await Api.duplicates(criteria);
             this.renderResults(result);
             App.setStatus(
                 `Found ${result.summary.totalGroups} duplicate groups (${result.summary.totalDuplicates} extra entries).`,
@@ -27,7 +27,10 @@ const Duplicates = {
         container.textContent = '';
 
         if (result.groups.length === 0) {
-            container.innerHTML = '<p class="placeholder">No duplicates found.</p>';
+            const p = document.createElement('p');
+            p.className = 'placeholder';
+            p.textContent = 'No duplicates found.';
+            container.appendChild(p);
             return;
         }
 
