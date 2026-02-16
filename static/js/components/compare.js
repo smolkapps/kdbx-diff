@@ -288,7 +288,7 @@ const Compare = {
             return App.setStatus('Open databases first, then compare.', 'error');
         }
         App.setStatus('Comparing databases...', 'info');
-        document.getElementById('compareResults').innerHTML = '';
+        document.getElementById('compareResults').textContent = '';
 
         try {
             const result = await Api.compare();
@@ -303,17 +303,30 @@ const Compare = {
 
     renderResults(result) {
         const container = document.getElementById('compareResults');
-        container.innerHTML = '';
+        container.textContent = '';
 
         // Summary cards
         const summary = document.createElement('div');
         summary.className = 'summary-cards';
-        summary.innerHTML = `
-            <div class="card"><span class="card-number">${result.summary.onlyInDb1}</span><span class="card-label">Only in DB1</span></div>
-            <div class="card"><span class="card-number">${result.summary.onlyInDb2}</span><span class="card-label">Only in DB2</span></div>
-            <div class="card card-modified"><span class="card-number">${result.summary.modified}</span><span class="card-label">Modified</span></div>
-            <div class="card card-identical"><span class="card-number">${result.summary.identical}</span><span class="card-label">Identical</span></div>
-        `;
+        const cards = [
+            { count: result.summary.onlyInDb1, label: 'Only in DB1', cls: 'card' },
+            { count: result.summary.onlyInDb2, label: 'Only in DB2', cls: 'card' },
+            { count: result.summary.modified, label: 'Modified', cls: 'card card-modified' },
+            { count: result.summary.identical, label: 'Identical', cls: 'card card-identical' }
+        ];
+        for (const c of cards) {
+            const card = document.createElement('div');
+            card.className = c.cls;
+            const num = document.createElement('span');
+            num.className = 'card-number';
+            num.textContent = c.count;
+            const lbl = document.createElement('span');
+            lbl.className = 'card-label';
+            lbl.textContent = c.label;
+            card.appendChild(num);
+            card.appendChild(lbl);
+            summary.appendChild(card);
+        }
         container.appendChild(summary);
 
         // Collapsible sections
@@ -367,20 +380,42 @@ const Compare = {
             const title = mod.db1Entry.fields.Title || '(untitled)';
             const header = document.createElement('div');
             header.className = 'modified-entry-header';
-            header.innerHTML = `<strong>${this.escapeHtml(title)}</strong>`;
+            const strong = document.createElement('strong');
+            strong.textContent = title;
+            header.appendChild(strong);
             if (mod.timeDiff) {
-                header.innerHTML += ` <span class="newer-badge">Newer in ${mod.timeDiff.newerIn.toUpperCase()}</span>`;
+                header.appendChild(document.createTextNode(' '));
+                const badge = document.createElement('span');
+                badge.className = 'newer-badge';
+                badge.textContent = 'Newer in ' + mod.timeDiff.newerIn.toUpperCase();
+                header.appendChild(badge);
             }
             row.appendChild(header);
 
             if (mod.fieldDiffs.length > 0) {
                 const diffTable = document.createElement('table');
                 diffTable.className = 'diff-table';
-                diffTable.innerHTML = '<thead><tr><th>Field</th><th>DB1</th><th>DB2</th></tr></thead>';
+                const dtHead = document.createElement('thead');
+                const dtHeadRow = document.createElement('tr');
+                for (const text of ['Field', 'DB1', 'DB2']) {
+                    const th = document.createElement('th');
+                    th.textContent = text;
+                    dtHeadRow.appendChild(th);
+                }
+                dtHead.appendChild(dtHeadRow);
+                diffTable.appendChild(dtHead);
                 const tbody = document.createElement('tbody');
                 for (const d of mod.fieldDiffs) {
                     const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${this.escapeHtml(d.field)}</td><td>${this.escapeHtml(d.field === 'Password' ? '********' : d.db1Value)}</td><td>${this.escapeHtml(d.field === 'Password' ? '********' : d.db2Value)}</td>`;
+                    const tdField = document.createElement('td');
+                    tdField.textContent = d.field;
+                    tr.appendChild(tdField);
+                    const tdDb1 = document.createElement('td');
+                    tdDb1.textContent = d.field === 'Password' ? '********' : d.db1Value;
+                    tr.appendChild(tdDb1);
+                    const tdDb2 = document.createElement('td');
+                    tdDb2.textContent = d.field === 'Password' ? '********' : d.db2Value;
+                    tr.appendChild(tdDb2);
                     tbody.appendChild(tr);
                 }
                 diffTable.appendChild(tbody);
@@ -434,21 +469,48 @@ const Compare = {
     showDetail(entry) {
         const modal = document.getElementById('detailModal');
         const body = document.getElementById('detailBody');
+        body.textContent = '';
 
+        const table = document.createElement('table');
+        table.className = 'detail-table';
         const fields = entry.fields || {};
-        let html = '<table class="detail-table">';
         for (const [key, val] of Object.entries(fields)) {
-            const display = key === 'Password' ? '********' : (val || '');
-            html += `<tr><td><strong>${Compare.escapeHtml(key)}</strong></td><td>${Compare.escapeHtml(display)}</td></tr>`;
+            const tr = document.createElement('tr');
+            const tdKey = document.createElement('td');
+            const strong = document.createElement('strong');
+            strong.textContent = key;
+            tdKey.appendChild(strong);
+            tr.appendChild(tdKey);
+            const tdVal = document.createElement('td');
+            tdVal.textContent = key === 'Password' ? '********' : (val || '');
+            tr.appendChild(tdVal);
+            table.appendChild(tr);
         }
         if (entry.groupPath) {
-            html += `<tr><td><strong>Group</strong></td><td>${Compare.escapeHtml(entry.groupPath)}</td></tr>`;
+            const tr = document.createElement('tr');
+            const tdKey = document.createElement('td');
+            const strong = document.createElement('strong');
+            strong.textContent = 'Group';
+            tdKey.appendChild(strong);
+            tr.appendChild(tdKey);
+            const tdVal = document.createElement('td');
+            tdVal.textContent = entry.groupPath;
+            tr.appendChild(tdVal);
+            table.appendChild(tr);
         }
         if (entry.times?.lastModTime) {
-            html += `<tr><td><strong>Last Modified</strong></td><td>${new Date(entry.times.lastModTime).toLocaleString()}</td></tr>`;
+            const tr = document.createElement('tr');
+            const tdKey = document.createElement('td');
+            const strong = document.createElement('strong');
+            strong.textContent = 'Last Modified';
+            tdKey.appendChild(strong);
+            tr.appendChild(tdKey);
+            const tdVal = document.createElement('td');
+            tdVal.textContent = new Date(entry.times.lastModTime).toLocaleString();
+            tr.appendChild(tdVal);
+            table.appendChild(tr);
         }
-        html += '</table>';
-        body.innerHTML = html;
+        body.appendChild(table);
         modal.style.display = 'flex';
     },
 

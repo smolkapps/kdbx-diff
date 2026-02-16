@@ -36,7 +36,7 @@ const CsvImport = {
 
     renderResult(result) {
         const container = document.getElementById('csvImportResults');
-        container.innerHTML = '';
+        container.textContent = '';
 
         const card = document.createElement('div');
         card.className = 'csv-import-result';

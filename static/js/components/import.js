@@ -7,6 +7,7 @@ const Import = {
         document.getElementById('importAllBtn').addEventListener('click', () => this.handleImport('all'));
         document.getElementById('importSelectedBtn').addEventListener('click', () => this.handleImportSelected());
         document.getElementById('showSelectBtn').addEventListener('click', () => this.showSelectionTable());
+        document.getElementById('importDownloadBtn').addEventListener('click', () => Transfer.downloadDb('db1'));
 
         // Extract split button
         document.getElementById('extractBtn').addEventListener('click', () => this.handleExtract('clipboard'));
@@ -34,7 +35,7 @@ const Import = {
             App.state.diffResults = diff;
 
             const container = document.getElementById('importSelectArea');
-            container.innerHTML = '';
+            container.textContent = '';
 
             // Show all db2 entries for selection
             const allEntries = [
