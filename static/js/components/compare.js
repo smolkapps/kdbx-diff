@@ -133,7 +133,7 @@ const Compare = {
             const result = await Api.upload(formData);
             App.state.uploaded = true;
 
-            let msg = 'Databases loaded.';
+            let msg = 'Databases loaded:';
             if (result.databases.db1) {
                 msg += ` DB1: ${result.databases.db1.entryCount} entries.`;
             }
