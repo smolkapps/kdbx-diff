@@ -390,6 +390,7 @@ select#dupCriteria {
 /* Selected database column highlight in detail view */
 .selected-db-column {
     background: #e8f5e9 !important;
+    border-color: #c8e6c9 !important;
 }
 
 /* "Only in DBx" note */
@@ -413,6 +414,23 @@ select#dupCriteria {
     font-weight: 700;
     margin-left: 6px;
 }
+
+/* Recent Databases */
+.db-history-section { margin-bottom: 16px; }
+.db-history-title { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.db-history-list { border: 1px solid #ddd; border-radius: 6px; background: #fff; overflow: hidden; }
+.db-history-entry { display: flex; justify-content: space-between; align-items: center; padding: 8px 14px; border-bottom: 1px solid #eee; font-size: 14px; }
+.db-history-entry:last-child { border-bottom: none; }
+.db-history-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-right: 12px; }
+.db-history-key-tag { color: #666; font-size: 12px; }
+.db-history-date { font-size: 12px; color: #999; margin-right: 12px; white-space: nowrap; }
+.db-history-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.db-history-btn { padding: 4px 10px; font-size: 12px; }
+.db-history-remove { background: transparent; color: #999; border: 1px solid #ddd; font-size: 16px; padding: 2px 8px; }
+.db-history-remove:hover:not(:disabled) { background: #ffebee; color: #c62828; border-color: #ef9a9a; }
+
+/* Staged file indicators */
+.staged-indicator { display: inline-block; font-size: 13px; color: #2e7d32; background: #e8f5e9; padding: 2px 8px; border-radius: 4px; margin-top: 4px; font-weight: 500; }
 
 /* Detail modal footer with reviewed checkbox */
 .detail-footer {
