@@ -97,6 +97,13 @@ const Api = {
         return this._handle(res);
     },
 
+    async entries() {
+        const res = await this._fetch('/api/entries', {
+            headers: this._headers()
+        });
+        return this._handle(res);
+    },
+
     async importEntries(mode, selectedUuids) {
         const res = await this._fetch('/api/import', {
             method: 'POST',

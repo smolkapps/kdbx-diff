@@ -70,30 +70,26 @@ const Import = {
     async handleExtract(action) {
         App.setStatus('Extracting titles and URLs...', 'info');
         try {
-            const diff = App.state.diffResults || await Api.compare();
-            App.state.diffResults = diff;
+            const data = await Api.entries();
+            const allEntries = [...data.db1Entries, ...data.db2Entries];
 
-            // All DB1 entries
-            const entries = [
-                ...(diff.onlyInDb1 || []),
-                ...(diff.modified || []).map(m => m.db1Entry),
-                ...(diff.identical || [])
-            ];
-
-            const rows = entries.map(e => ({
-                title: (e.fields?.Title) || '',
-                url: (e.fields?.URL) || ''
+            const rows = allEntries.map(e => ({
+                title: e.Title || '',
+                url: e.URL || ''
             })).filter(r => r.title || r.url);
 
             if (rows.length === 0) {
-                App.setStatus('No entries with titles or URLs found in DB1.', 'error');
+                App.setStatus('No entries with titles or URLs found.', 'error');
                 return;
             }
+
+            const dbLabel = data.db1Entries.length && data.db2Entries.length ? 'DB1+DB2' :
+                data.db1Entries.length ? 'DB1' : 'DB2';
 
             if (action === 'clipboard') {
                 const text = rows.map(r => r.title + '\t' + r.url).join('\n');
                 await navigator.clipboard.writeText(text);
-                App.setStatus(`Copied ${rows.length} entries to clipboard.`, 'success');
+                App.setStatus(`Copied ${rows.length} entries from ${dbLabel} to clipboard.`, 'success');
             } else if (action === 'csv') {
                 const lines = ['Title,URL', ...rows.map(r =>
                     '"' + r.title.replace(/"/g, '""') + '","' + r.url.replace(/"/g, '""') + '"'
@@ -102,13 +98,13 @@ const Import = {
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'db1-titles-urls.csv';
+                a.download = 'titles-urls.csv';
                 a.click();
                 URL.revokeObjectURL(url);
-                App.setStatus(`Downloaded CSV with ${rows.length} entries.`, 'success');
+                App.setStatus(`Downloaded CSV with ${rows.length} entries from ${dbLabel}.`, 'success');
             } else if (action === 'display') {
                 this._displayExtracted(rows);
-                App.setStatus(`Showing ${rows.length} entries from DB1.`, 'success');
+                App.setStatus(`Showing ${rows.length} entries from ${dbLabel}.`, 'success');
             }
         } catch (err) {
             App.setStatus('Extract failed: ' + err.message, 'error');
