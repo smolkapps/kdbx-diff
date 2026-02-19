@@ -146,6 +146,11 @@ const Compare = {
             document.getElementById('compareBtn').disabled = false;
             document.getElementById('downloadSection').style.display = 'flex';
 
+            // Auto-compare when both databases are loaded
+            if (result.databases.db1 && result.databases.db2) {
+                await this.handleCompare();
+            }
+
             // Save to history after successful upload
             await this._saveToHistory(db1File, db1Input, kf1File, kf1Input);
             await this._saveToHistory(db2File, db2Input, kf2File, kf2Input);
