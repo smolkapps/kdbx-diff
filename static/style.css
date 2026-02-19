@@ -387,6 +387,11 @@ select#dupCriteria {
     background: #fff8e1;
 }
 
+/* Selected database column highlight in detail view */
+.selected-db-column {
+    background: #e8f5e9 !important;
+}
+
 /* "Only in DBx" note */
 .search-only-note {
     background: #e3f2fd;
