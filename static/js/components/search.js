@@ -120,6 +120,12 @@ const Search = {
         const otherDb = source === 'db1' ? 'DB2' : 'DB1';
         const sourceDb = source === 'db1' ? 'DB1' : 'DB2';
 
+        // Always show DB1 left, DB2 right regardless of which was clicked
+        const db1Entry = source === 'db1' ? sourceEntry : counterpart;
+        const db2Entry = source === 'db1' ? counterpart : sourceEntry;
+        // Column index (1=left data col, 2=right data col) that is the selected/source
+        const selectedCol = source === 'db1' ? 1 : 2;
+
         if (!sourceEntry) {
             const p = document.createElement('p');
             p.textContent = 'Entry not found.';
@@ -193,22 +199,24 @@ const Search = {
             }
         }
 
-        // Build side-by-side table
+        // Build side-by-side table — always DB1 left, DB2 right
         const table = document.createElement('table');
         table.className = 'detail-side-by-side';
 
         const thead = document.createElement('thead');
         const headRow = document.createElement('tr');
-        for (const text of ['Field', sourceDb, otherDb]) {
+        const headers = ['Field', 'DB1', 'DB2'];
+        for (let i = 0; i < headers.length; i++) {
             const th = document.createElement('th');
-            th.textContent = text;
+            th.textContent = headers[i];
+            if (i === selectedCol) th.classList.add('selected-db-column');
             headRow.appendChild(th);
         }
         thead.appendChild(headRow);
         table.appendChild(thead);
 
         const tbody = document.createElement('tbody');
-        const passwordCells = []; // track password cells for show/hide toggle
+        const protectedCells = []; // track protected-field cells for show/hide toggle
 
         // Collect all field keys
         const allKeys = new Set();
@@ -219,13 +227,23 @@ const Search = {
             for (const k of Object.keys(counterpart.fields)) allKeys.add(k);
         }
 
+        // Determine which fields are protected (from either entry)
+        const protectedFields = new Set([
+            ...(sourceEntry.protectedFields || []),
+            ...((counterpart && counterpart.protectedFields) || [])
+        ]);
+
         for (const key of allKeys) {
-            const val1 = (sourceEntry.fields || {})[key] || '';
-            const val2 = counterpart ? ((counterpart.fields || {})[key] || '') : '';
-            const isPassword = key === 'Password';
+            const srcVal = (sourceEntry.fields || {})[key] || '';
+            const cptVal = counterpart ? ((counterpart.fields || {})[key] || '') : '';
+            // Always: left = DB1, right = DB2
+            const [leftVal, rightVal] = source === 'db1'
+                ? [srcVal, cptVal]
+                : [cptVal, srcVal];
+            const isProtected = protectedFields.has(key);
 
             const tr = document.createElement('tr');
-            if (counterpart && val1 !== val2) {
+            if (counterpart && srcVal !== cptVal) {
                 tr.className = 'detail-diff-row';
             }
 
@@ -234,22 +252,24 @@ const Search = {
             tdField.style.fontWeight = '600';
             tr.appendChild(tdField);
 
-            const tdSource = document.createElement('td');
-            tdSource.textContent = isPassword ? '********' : val1;
-            tr.appendChild(tdSource);
+            const tdLeft = document.createElement('td');
+            tdLeft.textContent = isProtected ? '********' : leftVal;
+            if (selectedCol === 1) tdLeft.classList.add('selected-db-column');
+            tr.appendChild(tdLeft);
 
-            const tdOther = document.createElement('td');
-            tdOther.textContent = counterpart ? (isPassword ? '********' : val2) : '\u2014';
-            tr.appendChild(tdOther);
+            const tdRight = document.createElement('td');
+            tdRight.textContent = counterpart ? (isProtected ? '********' : rightVal) : '\u2014';
+            if (selectedCol === 2) tdRight.classList.add('selected-db-column');
+            tr.appendChild(tdRight);
 
-            if (isPassword) {
-                passwordCells.push({ tdSource, tdOther, hasCounterpart: !!counterpart });
+            if (isProtected) {
+                protectedCells.push({ key, tdLeft, tdRight, hasCounterpart: !!counterpart });
             }
 
             tbody.appendChild(tr);
         }
 
-        // Show/hide password toggle — fetches unmasked passwords on demand
+        // Show/hide password toggle — fetches unmasked values on demand
         showPwBtn.addEventListener('click', async () => {
             if (!passwordsVisible) {
                 showPwBtn.disabled = true;
@@ -262,11 +282,16 @@ const Search = {
                     }
                     passwordsVisible = true;
                     showPwBtn.textContent = 'Hide Passwords';
-                    const srcPw = (unmaskedDetail.sourceEntry?.fields || {}).Password || '';
-                    const cptPw = (unmaskedDetail.counterpart?.fields || {}).Password || '';
-                    for (const pc of passwordCells) {
-                        pc.tdSource.textContent = srcPw;
-                        pc.tdOther.textContent = pc.hasCounterpart ? cptPw : '\u2014';
+                    const unmSrc = unmaskedDetail.sourceEntry?.fields || {};
+                    const unmCpt = unmaskedDetail.counterpart?.fields || {};
+                    for (const pc of protectedCells) {
+                        const srcPv = unmSrc[pc.key] || '';
+                        const cptPv = unmCpt[pc.key] || '';
+                        const [leftPv, rightPv] = source === 'db1'
+                            ? [srcPv, cptPv]
+                            : [cptPv, srcPv];
+                        pc.tdLeft.textContent = leftPv;
+                        pc.tdRight.textContent = pc.hasCounterpart ? rightPv : '\u2014';
                     }
                 } catch (err) {
                     showPwBtn.textContent = 'Show Passwords';
@@ -277,18 +302,19 @@ const Search = {
             } else {
                 passwordsVisible = false;
                 showPwBtn.textContent = 'Show Passwords';
-                for (const pc of passwordCells) {
-                    pc.tdSource.textContent = '********';
-                    pc.tdOther.textContent = pc.hasCounterpart ? '********' : '\u2014';
+                for (const pc of protectedCells) {
+                    pc.tdLeft.textContent = '********';
+                    pc.tdRight.textContent = pc.hasCounterpart ? '********' : '\u2014';
                 }
             }
         });
 
         // Group path row
         const grpTr = document.createElement('tr');
-        const grpVal1 = sourceEntry.groupPath || '';
-        const grpVal2 = counterpart ? (counterpart.groupPath || '') : '';
-        if (counterpart && grpVal1 !== grpVal2) grpTr.className = 'detail-diff-row';
+        const grpSrc = sourceEntry.groupPath || '';
+        const grpCpt = counterpart ? (counterpart.groupPath || '') : '';
+        const [grpLeft, grpRight] = source === 'db1' ? [grpSrc, grpCpt] : [grpCpt, grpSrc];
+        if (counterpart && grpSrc !== grpCpt) grpTr.className = 'detail-diff-row';
 
         const grpTd1 = document.createElement('td');
         grpTd1.textContent = 'Group';
@@ -296,20 +322,23 @@ const Search = {
         grpTr.appendChild(grpTd1);
 
         const grpTd2 = document.createElement('td');
-        grpTd2.textContent = grpVal1;
+        grpTd2.textContent = grpLeft;
+        if (selectedCol === 1) grpTd2.classList.add('selected-db-column');
         grpTr.appendChild(grpTd2);
 
         const grpTd3 = document.createElement('td');
-        grpTd3.textContent = counterpart ? grpVal2 : '\u2014';
+        grpTd3.textContent = counterpart ? grpRight : '\u2014';
+        if (selectedCol === 2) grpTd3.classList.add('selected-db-column');
         grpTr.appendChild(grpTd3);
 
         tbody.appendChild(grpTr);
 
         // Last modified row
         const modTr = document.createElement('tr');
-        const mod1 = sourceEntry.times?.lastModTime ? new Date(sourceEntry.times.lastModTime).toLocaleString() : '';
-        const mod2 = counterpart && counterpart.times?.lastModTime ? new Date(counterpart.times.lastModTime).toLocaleString() : '';
-        if (counterpart && mod1 !== mod2) modTr.className = 'detail-diff-row';
+        const modSrc = sourceEntry.times?.lastModTime ? new Date(sourceEntry.times.lastModTime).toLocaleString() : '';
+        const modCpt = counterpart && counterpart.times?.lastModTime ? new Date(counterpart.times.lastModTime).toLocaleString() : '';
+        const [modLeft, modRight] = source === 'db1' ? [modSrc, modCpt] : [modCpt, modSrc];
+        if (counterpart && modSrc !== modCpt) modTr.className = 'detail-diff-row';
 
         const modTd1 = document.createElement('td');
         modTd1.textContent = 'Last Modified';
@@ -317,25 +346,27 @@ const Search = {
         modTr.appendChild(modTd1);
 
         const modTd2 = document.createElement('td');
-        modTd2.textContent = mod1;
+        modTd2.textContent = modLeft;
+        if (selectedCol === 1) modTd2.classList.add('selected-db-column');
         modTr.appendChild(modTd2);
 
         const modTd3 = document.createElement('td');
-        modTd3.textContent = counterpart ? mod2 : '\u2014';
+        modTd3.textContent = counterpart ? modRight : '\u2014';
+        if (selectedCol === 2) modTd3.classList.add('selected-db-column');
         modTr.appendChild(modTd3);
 
-        // Bold the newer date if both exist
-        if (counterpart && sourceEntry.times?.lastModTime && counterpart.times?.lastModTime) {
-            const date1 = new Date(sourceEntry.times.lastModTime);
-            const date2 = new Date(counterpart.times.lastModTime);
+        // Bold the newer date — db1Entry is always left (modTd2), db2Entry is always right (modTd3)
+        if (counterpart && db1Entry?.times?.lastModTime && db2Entry?.times?.lastModTime) {
+            const date1 = new Date(db1Entry.times.lastModTime);
+            const date2 = new Date(db2Entry.times.lastModTime);
             if (date1 > date2) {
                 modTd2.style.fontWeight = 'bold';
             } else if (date2 > date1) {
                 modTd3.style.fontWeight = 'bold';
             }
-        } else if (sourceEntry.times?.lastModTime && !counterpart?.times?.lastModTime) {
+        } else if (db1Entry?.times?.lastModTime && !db2Entry?.times?.lastModTime) {
             modTd2.style.fontWeight = 'bold';
-        } else if (counterpart?.times?.lastModTime && !sourceEntry.times?.lastModTime) {
+        } else if (db2Entry?.times?.lastModTime && !db1Entry?.times?.lastModTime) {
             modTd3.style.fontWeight = 'bold';
         }
 
