@@ -47,7 +47,7 @@ function sanitizeFilename(name) {
 const rateLimiter = {
     _requests: new Map(),
     _windowMs: 60 * 1000, // 1 minute
-    _maxRequests: 30,
+    _maxRequests: 120,
 
     check(ip) {
         const now = Date.now();
@@ -97,8 +97,8 @@ const upload = multer({
 
 app.use(express.json());
 
-// --- Security: rate limiting middleware ---
-app.use((req, res, next) => {
+// --- Security: rate limiting middleware (API routes only) ---
+app.use('/api/', (req, res, next) => {
     const ip = req.ip || req.connection.remoteAddress;
     if (!rateLimiter.check(ip)) {
         return res.status(429).json({ error: 'Too many requests. Please try again later.' });
