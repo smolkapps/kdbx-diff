@@ -157,6 +157,42 @@ const Search = {
             body.appendChild(note);
         }
 
+        // Summary of differing fields
+        if (counterpart) {
+            const differingFields = [];
+
+            // Check all fields
+            const allKeys = new Set();
+            if (sourceEntry.fields) {
+                for (const k of Object.keys(sourceEntry.fields)) allKeys.add(k);
+            }
+            if (counterpart.fields) {
+                for (const k of Object.keys(counterpart.fields)) allKeys.add(k);
+            }
+            for (const key of allKeys) {
+                const val1 = (sourceEntry.fields || {})[key] || '';
+                const val2 = (counterpart.fields || {})[key] || '';
+                if (val1 !== val2) differingFields.push(key);
+            }
+
+            // Check group path
+            const grpVal1 = sourceEntry.groupPath || '';
+            const grpVal2 = counterpart.groupPath || '';
+            if (grpVal1 !== grpVal2) differingFields.push('Group');
+
+            // Check last modified
+            const mod1 = sourceEntry.times?.lastModTime || '';
+            const mod2 = counterpart.times?.lastModTime || '';
+            if (mod1 !== mod2) differingFields.push('Last Modified');
+
+            if (differingFields.length > 0) {
+                const diffSummary = document.createElement('p');
+                diffSummary.style.cssText = 'font-size: 12px; color: #1565c0; font-weight: 500; margin-bottom: 8px;';
+                diffSummary.textContent = 'Fields that differ: ' + differingFields.join(', ');
+                body.appendChild(diffSummary);
+            }
+        }
+
         // Build side-by-side table
         const table = document.createElement('table');
         table.className = 'detail-side-by-side';
@@ -229,8 +265,8 @@ const Search = {
                     const srcPw = (unmaskedDetail.sourceEntry?.fields || {}).Password || '';
                     const cptPw = (unmaskedDetail.counterpart?.fields || {}).Password || '';
                     for (const pc of passwordCells) {
-                        pc.tdSource.textContent = srcPw;
-                        pc.tdOther.textContent = pc.hasCounterpart ? cptPw : '\u2014';
+                        pc.tdSource.textContent = sourceDb + ': ' + srcPw;
+                        pc.tdOther.textContent = pc.hasCounterpart ? (otherDb + ': ' + cptPw) : '\u2014';
                     }
                 } catch (err) {
                     showPwBtn.textContent = 'Show Passwords';
@@ -287,6 +323,21 @@ const Search = {
         const modTd3 = document.createElement('td');
         modTd3.textContent = counterpart ? mod2 : '\u2014';
         modTr.appendChild(modTd3);
+
+        // Bold the newer date if both exist
+        if (counterpart && sourceEntry.times?.lastModTime && counterpart.times?.lastModTime) {
+            const date1 = new Date(sourceEntry.times.lastModTime);
+            const date2 = new Date(counterpart.times.lastModTime);
+            if (date1 > date2) {
+                modTd2.style.fontWeight = 'bold';
+            } else if (date2 > date1) {
+                modTd3.style.fontWeight = 'bold';
+            }
+        } else if (sourceEntry.times?.lastModTime && !counterpart?.times?.lastModTime) {
+            modTd2.style.fontWeight = 'bold';
+        } else if (counterpart?.times?.lastModTime && !sourceEntry.times?.lastModTime) {
+            modTd3.style.fontWeight = 'bold';
+        }
 
         tbody.appendChild(modTr);
 
