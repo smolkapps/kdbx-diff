@@ -25,19 +25,27 @@
 
     <!-- Compare Tab -->
     <div id="tab-compare" class="tab-panel active">
+        <div id="dbHistorySection" class="db-history-section" style="display:none">
+            <h3 class="db-history-title">Recent Databases</h3>
+            <div id="dbHistoryList" class="db-history-list"></div>
+        </div>
         <div class="upload-form">
             <div class="form-row">
                 <fieldset>
                     <legend>Database 1</legend>
                     <label>File: <input type="file" id="db1"></label>
+                    <span id="stagedDb1" class="staged-indicator" style="display:none"></span>
                     <label>Password: <input type="password" id="passwordDb1"></label>
                     <label>Key File: <input type="file" id="keyFile1"></label>
+                    <span id="stagedKey1" class="staged-indicator" style="display:none"></span>
                 </fieldset>
                 <fieldset>
                     <legend>Database 2</legend>
                     <label>File: <input type="file" id="db2"></label>
+                    <span id="stagedDb2" class="staged-indicator" style="display:none"></span>
                     <label>Password: <input type="password" id="passwordDb2"></label>
                     <label>Key File: <input type="file" id="keyFile2"></label>
+                    <span id="stagedKey2" class="staged-indicator" style="display:none"></span>
                 </fieldset>
             </div>
             <div class="button-row">
@@ -120,6 +128,7 @@
     </div>
 
     <script src="js/api.js"></script>
+    <script src="js/db-history.js"></script>
     <script src="js/components/entry-table.js"></script>
     <script src="js/components/compare.js"></script>
     <script src="js/components/transfer.js"></script>

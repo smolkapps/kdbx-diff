@@ -39,6 +39,14 @@ const App = {
         this.state.compared = false;
         this.state.diffResults = null;
 
+        // Clear staged files
+        Compare._staged = { db1: null, db2: null };
+        ['stagedDb1', 'stagedDb2', 'stagedKey1', 'stagedKey2'].forEach(id => {
+            const el = document.getElementById(id);
+            el.style.display = 'none';
+            el.textContent = '';
+        });
+
         // Disable tabs
         document.querySelectorAll('.tab-btn[data-requires-upload]').forEach(btn => {
             btn.disabled = true;
