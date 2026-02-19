@@ -265,8 +265,8 @@ const Search = {
                     const srcPw = (unmaskedDetail.sourceEntry?.fields || {}).Password || '';
                     const cptPw = (unmaskedDetail.counterpart?.fields || {}).Password || '';
                     for (const pc of passwordCells) {
-                        pc.tdSource.textContent = sourceDb + ': ' + srcPw;
-                        pc.tdOther.textContent = pc.hasCounterpart ? (otherDb + ': ' + cptPw) : '\u2014';
+                        pc.tdSource.textContent = srcPw;
+                        pc.tdOther.textContent = pc.hasCounterpart ? cptPw : '\u2014';
                     }
                 } catch (err) {
                     showPwBtn.textContent = 'Show Passwords';
