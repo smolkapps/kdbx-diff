@@ -279,6 +279,9 @@ const Compare = {
     },
 
     async handleCompare() {
+        if (!App.state.uploaded) {
+            return App.setStatus('Open databases first, then compare.', 'error');
+        }
         App.setStatus('Comparing databases...', 'info');
         document.getElementById('compareResults').innerHTML = '';
 
