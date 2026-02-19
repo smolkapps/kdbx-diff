@@ -90,7 +90,16 @@
             <button id="importAllBtn" class="btn-secondary">Import All</button>
             <button id="importSelectedBtn" disabled>Import Selected</button>
             <button class="btn-secondary" onclick="Transfer.downloadDb('db1')">Download Updated DB1</button>
+            <div class="split-btn-group">
+                <button id="extractBtn" class="btn-secondary split-btn-main">Extract Titles &amp; URLs</button><button id="extractDropdownBtn" class="btn-secondary split-btn-arrow">&#9662;</button>
+                <div id="extractMenu" class="split-btn-menu" style="display:none">
+                    <button data-action="clipboard">Copy to clipboard</button>
+                    <button data-action="csv">Download as CSV</button>
+                    <button data-action="display">Display in page</button>
+                </div>
+            </div>
         </div>
+        <div id="extractDisplayArea"></div>
         <div id="importSelectArea"></div>
     </div>
 

@@ -7,6 +7,23 @@ const Import = {
         document.getElementById('importAllBtn').addEventListener('click', () => this.handleImport('all'));
         document.getElementById('importSelectedBtn').addEventListener('click', () => this.handleImportSelected());
         document.getElementById('showSelectBtn').addEventListener('click', () => this.showSelectionTable());
+
+        // Extract split button
+        document.getElementById('extractBtn').addEventListener('click', () => this.handleExtract('clipboard'));
+        const arrow = document.getElementById('extractDropdownBtn');
+        const menu = document.getElementById('extractMenu');
+        arrow.addEventListener('click', (e) => {
+            e.stopPropagation();
+            menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+        });
+        menu.addEventListener('click', (e) => {
+            const action = e.target.dataset.action;
+            if (action) {
+                menu.style.display = 'none';
+                this.handleExtract(action);
+            }
+        });
+        document.addEventListener('click', () => { menu.style.display = 'none'; });
     },
 
     async showSelectionTable() {
@@ -48,6 +65,75 @@ const Import = {
         } catch (err) {
             App.setStatus('Import failed: ' + err.message, 'error');
         }
+    },
+
+    async handleExtract(action) {
+        App.setStatus('Extracting titles and URLs...', 'info');
+        try {
+            const diff = App.state.diffResults || await Api.compare();
+            App.state.diffResults = diff;
+
+            // All DB1 entries
+            const entries = [
+                ...(diff.onlyInDb1 || []),
+                ...(diff.modified || []).map(m => m.db1Entry),
+                ...(diff.identical || [])
+            ];
+
+            const rows = entries.map(e => ({
+                title: (e.fields?.Title) || '',
+                url: (e.fields?.URL) || ''
+            })).filter(r => r.title || r.url);
+
+            if (rows.length === 0) {
+                App.setStatus('No entries with titles or URLs found in DB1.', 'error');
+                return;
+            }
+
+            if (action === 'clipboard') {
+                const text = rows.map(r => r.title + '\t' + r.url).join('\n');
+                await navigator.clipboard.writeText(text);
+                App.setStatus(`Copied ${rows.length} entries to clipboard.`, 'success');
+            } else if (action === 'csv') {
+                const lines = ['Title,URL', ...rows.map(r =>
+                    '"' + r.title.replace(/"/g, '""') + '","' + r.url.replace(/"/g, '""') + '"'
+                )];
+                const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'db1-titles-urls.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+                App.setStatus(`Downloaded CSV with ${rows.length} entries.`, 'success');
+            } else if (action === 'display') {
+                this._displayExtracted(rows);
+                App.setStatus(`Showing ${rows.length} entries from DB1.`, 'success');
+            }
+        } catch (err) {
+            App.setStatus('Extract failed: ' + err.message, 'error');
+        }
+    },
+
+    _displayExtracted(rows) {
+        const area = document.getElementById('extractDisplayArea');
+        area.innerHTML = '';
+        const table = document.createElement('table');
+        table.className = 'entry-table';
+        table.innerHTML = '<thead><tr><th>Title</th><th>URL</th></tr></thead>';
+        const tbody = document.createElement('tbody');
+        for (const r of rows) {
+            const tr = document.createElement('tr');
+            const td1 = document.createElement('td');
+            td1.textContent = r.title;
+            const td2 = document.createElement('td');
+            td2.textContent = r.url;
+            tr.appendChild(td1);
+            tr.appendChild(td2);
+            tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        area.appendChild(table);
     },
 
     async handleImportSelected() {
