@@ -7,6 +7,16 @@ const Search = {
         document.getElementById('searchInput').addEventListener('keydown', (e) => {
             if (e.key === 'Enter') this.handleSearch();
         });
+
+        // '/' focuses search box when on the Search tab (like Firefox/Google)
+        document.addEventListener('keydown', (e) => {
+            if (e.key !== '/') return;
+            const tag = document.activeElement?.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+            if (!document.getElementById('tab-search').classList.contains('active')) return;
+            e.preventDefault();
+            document.getElementById('searchInput').focus();
+        });
     },
 
     async handleSearch() {
