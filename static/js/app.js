@@ -19,6 +19,9 @@ const App = {
             }
         });
 
+        // Reconnect button
+        document.getElementById('reconnectBtn').addEventListener('click', () => this.handleReconnect());
+
         // Initialize components
         Compare.init();
         Transfer.init();
@@ -26,6 +29,32 @@ const App = {
         Import.init();
         CsvImport.init();
         Search.init();
+    },
+
+    handleReconnect() {
+        this.setStatus('Reconnecting...', 'info');
+        // Clear current session
+        Api.sessionToken = null;
+        this.state.uploaded = false;
+        this.state.compared = false;
+        this.state.diffResults = null;
+
+        // Disable tabs
+        document.querySelectorAll('.tab-btn[data-requires-upload]').forEach(btn => {
+            btn.disabled = true;
+        });
+
+        // Switch to Compare tab
+        this.switchTab('tab-compare');
+
+        // Hide reconnect button
+        document.getElementById('reconnectBtn').style.display = 'none';
+
+        this.setStatus('Session cleared. Please re-upload your databases.', 'info');
+    },
+
+    showReconnectButton() {
+        document.getElementById('reconnectBtn').style.display = 'block';
     },
 
     switchTab(tabId) {

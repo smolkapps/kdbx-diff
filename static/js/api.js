@@ -6,14 +6,14 @@ const Api = {
         const headers = {};
         if (this.sessionToken) headers['X-Session-Token'] = this.sessionToken;
 
-        const res = await fetch('/api/upload', { method: 'POST', headers, body: formData });
+        const res = await this._fetch('/api/upload', { method: 'POST', headers, body: formData });
         const data = await this._handle(res);
         if (data.sessionToken) this.sessionToken = data.sessionToken;
         return data;
     },
 
     async compare() {
-        const res = await fetch('/api/compare', {
+        const res = await this._fetch('/api/compare', {
             method: 'POST',
             headers: this._headers()
         });
@@ -21,7 +21,7 @@ const Api = {
     },
 
     async download(slot) {
-        const res = await fetch(`/api/download/${slot}`, {
+        const res = await this._fetch(`/api/download/${slot}`, {
             headers: this._headers()
         });
         if (!res.ok) {
@@ -33,7 +33,7 @@ const Api = {
 
     async destroySession() {
         if (!this.sessionToken) return;
-        await fetch('/api/session', {
+        await this._fetch('/api/session', {
             method: 'DELETE',
             headers: this._headers()
         });
@@ -42,7 +42,7 @@ const Api = {
 
     // Future: transfer, duplicates, import
     async transfer(transfers) {
-        const res = await fetch('/api/transfer', {
+        const res = await this._fetch('/api/transfer', {
             method: 'POST',
             headers: { ...this._headers(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ transfers })
@@ -51,7 +51,7 @@ const Api = {
     },
 
     async duplicates() {
-        const res = await fetch('/api/duplicates', {
+        const res = await this._fetch('/api/duplicates', {
             method: 'POST',
             headers: this._headers()
         });
@@ -59,7 +59,7 @@ const Api = {
     },
 
     async removeDuplicates(uuids) {
-        const res = await fetch('/api/duplicates/remove', {
+        const res = await this._fetch('/api/duplicates/remove', {
             method: 'POST',
             headers: { ...this._headers(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ uuids })
@@ -71,7 +71,7 @@ const Api = {
         const headers = {};
         if (this.sessionToken) headers['X-Session-Token'] = this.sessionToken;
 
-        const res = await fetch('/api/csv-import', { method: 'POST', headers, body: formData });
+        const res = await this._fetch('/api/csv-import', { method: 'POST', headers, body: formData });
         const data = await this._handle(res);
         if (data.sessionToken) this.sessionToken = data.sessionToken;
         return data;
@@ -80,7 +80,7 @@ const Api = {
     async search(query, fields) {
         const body = { query };
         if (fields) body.fields = fields;
-        const res = await fetch('/api/search', {
+        const res = await this._fetch('/api/search', {
             method: 'POST',
             headers: { ...this._headers(), 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
@@ -89,7 +89,7 @@ const Api = {
     },
 
     async searchDetail(uuid, source, { showPasswords = false } = {}) {
-        const res = await fetch('/api/search/detail', {
+        const res = await this._fetch('/api/search/detail', {
             method: 'POST',
             headers: { ...this._headers(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ uuid, source, showPasswords })
@@ -98,7 +98,7 @@ const Api = {
     },
 
     async importEntries(mode, selectedUuids) {
-        const res = await fetch('/api/import', {
+        const res = await this._fetch('/api/import', {
             method: 'POST',
             headers: { ...this._headers(), 'Content-Type': 'application/json' },
             body: JSON.stringify({ mode, selectedUuids })
@@ -121,5 +121,22 @@ const Api = {
         }
         if (!res.ok) throw new Error(data.error || 'Request failed');
         return data;
+    },
+
+    // Wrap fetch calls to detect network errors
+    async _fetch(url, options) {
+        try {
+            return await fetch(url, options);
+        } catch (err) {
+            // Network error or server unreachable
+            if (err.message === 'Failed to fetch' || err.name === 'TypeError') {
+                // Show reconnect button if App is available
+                if (typeof App !== 'undefined' && App.showReconnectButton) {
+                    App.showReconnectButton();
+                }
+                throw new Error('Server disconnected. Please reconnect using the "Reconnect" button in the top right or re-upload your databases on the Compare tab.');
+            }
+            throw err;
+        }
     }
 };
