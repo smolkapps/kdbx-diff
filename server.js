@@ -266,6 +266,29 @@ app.post('/api/compare', requireSession, async (req, res) => {
     }
 });
 
+// GET /api/entries — list all entries from uploaded databases (Title, URL, UserName)
+app.get('/api/entries', requireSession, (req, res) => {
+    try {
+        const { db1, db2 } = req.session.databases;
+        const kdbxService = new KdbxService();
+        const serialize = (entry) => {
+            const fields = {};
+            for (const key of ['Title', 'UserName', 'URL']) {
+                const val = entry.fields.get(key);
+                fields[key] = val && val.getText ? val.getText() : (val || '');
+            }
+            return fields;
+        };
+
+        const db1Entries = db1 ? kdbxService.getAllEntries(db1.db).map(serialize) : [];
+        const db2Entries = db2 ? kdbxService.getAllEntries(db2.db).map(serialize) : [];
+
+        res.json({ db1Entries, db2Entries });
+    } catch (error) {
+        safeError(res, 500, error, 'Failed to list entries');
+    }
+});
+
 // GET /api/download/:slot — download db1 or db2 as binary KDBX
 app.get('/api/download/:slot', requireSession, async (req, res) => {
     try {
