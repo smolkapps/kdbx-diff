@@ -535,10 +535,24 @@ app.post('/api/search/detail', requireSession, async (req, res) => {
 });
 
 // POST /api/csv-import — import CSV file from browser password exports
-app.post('/api/csv-import', requireSession, upload.single('csvFile'), async (req, res) => {
+// Does not require an existing session — creates one if needed (like /api/upload)
+app.post('/api/csv-import', upload.single('csvFile'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ error: 'No CSV file provided' });
+        }
+
+        // Create or reuse session (same pattern as /api/upload)
+        const token = req.headers['x-session-token'];
+        let sessionToken;
+        let session;
+
+        if (token && sessions.getSession(token)) {
+            session = sessions.getSession(token);
+            sessionToken = token;
+        } else {
+            sessionToken = sessions.createSession();
+            session = sessions.getSession(sessionToken);
         }
 
         const csvContent = req.file.buffer.toString('utf-8');
@@ -552,13 +566,13 @@ app.post('/api/csv-import', requireSession, upload.single('csvFile'), async (req
         const db = await importer.createDatabase(entries);
         const allEntries = kdbxService.getAllEntries(db);
 
-        const token = req.headers['x-session-token'];
-        const slot = req.session.databases.db1 ? 'db2' : 'db1';
+        const slot = session.databases.db1 ? 'db2' : 'db1';
         const filename = sanitizeFilename(req.file.originalname.replace(/\.csv$/i, '.kdbx'));
 
-        sessions.setDatabase(token, slot, { db, filename });
+        sessions.setDatabase(sessionToken, slot, { db, filename });
 
         res.json({
+            sessionToken,
             format,
             entryCount: allEntries.length,
             slot,
