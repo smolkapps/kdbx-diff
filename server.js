@@ -566,7 +566,8 @@ app.post('/api/csv-import', upload.single('csvFile'), async (req, res) => {
         const db = await importer.createDatabase(entries);
         const allEntries = kdbxService.getAllEntries(db);
 
-        const slot = session.databases.db1 ? 'db2' : 'db1';
+        // CSV always goes into db2 — the user's main database is db1
+        const slot = 'db2';
         const filename = sanitizeFilename(req.file.originalname.replace(/\.csv$/i, '.kdbx'));
 
         sessions.setDatabase(sessionToken, slot, { db, filename });
@@ -576,7 +577,8 @@ app.post('/api/csv-import', upload.single('csvFile'), async (req, res) => {
             format,
             entryCount: allEntries.length,
             slot,
-            filename
+            filename,
+            hasDb1: !!session.databases.db1
         });
     } catch (error) {
         safeError(res, 500, error, 'CSV import failed');
