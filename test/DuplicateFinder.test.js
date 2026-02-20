@@ -279,7 +279,7 @@ describe('DuplicateFinder', () => {
             
             const key = finder._buildKey(entry, 'username+url');
             
-            assert.strictEqual(key, 'user@example.com|https://example.com');
+            assert.strictEqual(key, 'user@example.com|example.com');
         });
 
         it('should build title+username key', () => {
@@ -318,14 +318,14 @@ describe('DuplicateFinder', () => {
             assert.strictEqual(key, null);
         });
 
-        it('should build key with only URL', () => {
+        it('should return null when username is empty for username+url', () => {
             const finder = new DuplicateFinder();
             const entry = createMockEntry('uuid', '', '', 'https://test.com');
-            
+
             const key = finder._buildKey(entry, 'username+url');
-            
-            // Should still build key since URL is present
-            assert.strictEqual(key, '|https://test.com');
+
+            // Both username and url are required to avoid false matches
+            assert.strictEqual(key, null);
         });
     });
 });
