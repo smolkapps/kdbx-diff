@@ -25,6 +25,10 @@ const CsvImport = {
             this.renderResult(result);
             App.state.uploaded = true;
             App.enableTabs();
+
+            // Enable Compare tab download section since a database is now loaded
+            document.getElementById('downloadSection').style.display = 'flex';
+            document.getElementById('compareBtn').disabled = false;
             App.setStatus(
                 `CSV imported: ${result.entryCount} entries from ${result.format} format, stored as ${result.slot}.`,
                 'success'
@@ -61,9 +65,20 @@ const CsvImport = {
         slotLabel.textContent = 'Stored as ' + result.slot.toUpperCase() + ' (' + result.filename + ')';
         card.appendChild(slotLabel);
 
+        // Download button
+        const btnRow = document.createElement('div');
+        btnRow.className = 'button-row';
+        btnRow.style.marginTop = '12px';
+
+        const dlBtn = document.createElement('button');
+        dlBtn.textContent = 'Download as KDBX';
+        dlBtn.addEventListener('click', () => Transfer.downloadDb(result.slot));
+        btnRow.appendChild(dlBtn);
+        card.appendChild(btnRow);
+
         const hint = document.createElement('p');
         hint.className = 'csv-hint';
-        hint.textContent = 'You can now use the Compare, Transfer, and Import tabs to work with this database.';
+        hint.textContent = 'Password for the downloaded database is "csv-import". You can also use the Compare, Duplicates, and Search tabs.';
         card.appendChild(hint);
 
         container.appendChild(card);
