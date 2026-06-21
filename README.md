@@ -18,14 +18,14 @@ All operations run locally. No data leaves your machine.
 ### npm
 
 ```bash
-npm install -g kdbx-diff-analyzer
+npm install -g @smolkapps/kdbx-diff
 kdbx-diff
 ```
 
 ### npx (no install)
 
 ```bash
-npx kdbx-diff-analyzer
+npx @smolkapps/kdbx-diff
 ```
 
 ### Docker

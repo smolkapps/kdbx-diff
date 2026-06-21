@@ -1,5 +1,5 @@
 {
-  "name": "kdbx-diff-analyzer",
+  "name": "@smolkapps/kdbx-diff",
   "version": "1.0.0",
   "description": "Compare, transfer, deduplicate, and import entries between KeePass (.kdbx) database files",
   "main": "server.js",
@@ -9,6 +9,9 @@
     "static/",
     "scripts/sign-native.sh"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "kdbx-diff": "server.js"
   },
