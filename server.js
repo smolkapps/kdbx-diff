@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 const crypto = require('crypto');
+const path = require('path');
 const express = require('express');
 const multer = require('multer');
 const KdbxService = require('./lib/KdbxService');
@@ -157,7 +158,7 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.static('static'));
+app.use(express.static(path.join(__dirname, 'static')));
 
 // Middleware: require valid session token
 function requireSession(req, res, next) {

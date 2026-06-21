@@ -1,6 +1,6 @@
 {
   "name": "@smolkapps/kdbx-diff",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Compare, transfer, deduplicate, and import entries between KeePass (.kdbx) database files",
   "main": "server.js",
   "files": [
