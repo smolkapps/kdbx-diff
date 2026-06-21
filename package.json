@@ -3,13 +3,19 @@
   "version": "1.0.0",
   "description": "Compare, transfer, deduplicate, and import entries between KeePass (.kdbx) database files",
   "main": "server.js",
+  "files": [
+    "server.js",
+    "lib/",
+    "static/",
+    "scripts/sign-native.sh"
+  ],
   "bin": {
     "kdbx-diff": "server.js"
   },
   "scripts": {
     "start": "node server.js",
     "test": "node --test 'test/**/*.test.js'",
-    "postinstall": "sh scripts/sign-native.sh"
+    "postinstall": "sh scripts/sign-native.sh || true"
   },
   "keywords": [
     "keepass",

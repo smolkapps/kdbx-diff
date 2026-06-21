@@ -2,6 +2,14 @@ test-unencrypted.kdbx
 PLAN.md
 KDBXDiffSpec.md
 CLAUDE.md
+GEMINI.md
+ANALYSIS.md
 readme.txt
+test/
 .DS_Store
 .git
+.gitignore
+.dockerignore
+.claude/
+.memory/
+node_modules/
